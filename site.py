@@ -20,7 +20,7 @@ class Application(tornado.web.Application):
         }
 
         app_handlers = [
-            (r'^/$', MainHandler),
+            (r'^/$', WritingHandler),
             (r'^/writing$', WritingHandler),
             (r'^/projects$', ProjectHandler),
         ]
@@ -28,7 +28,7 @@ class Application(tornado.web.Application):
 
 
 if __name__ == "__main__":
-    port = 63534
+    port = 8888
     address = '0.0.0.0'
     logging_level = logging.getLevelName('INFO')
     logging.getLogger().setLevel(logging_level)
