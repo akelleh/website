@@ -1,0 +1,38 @@
+<html>
+<head>
+  <title>Projects</title>
+  <link rel="stylesheet" type='text/css' href="../static/solid.2.10.6.css">
+</head>
+<body>
+<div class="xs-text-center clearfix">
+  <div class="button-group xs-float-center">
+    <a class="button button--white" href="writing">Writing</a>
+    <a class="button button--white" href="teaching">Teaching</a>
+    <a class="button button--white" href="projects">Projects</a>
+    <a class="button button--white" href="resume">Resume</a>
+    <a class="button button--white" href="https://github.com/akelleh">Github</a>
+    <a class="button button--white" href="https://www.linkedin.com/in/adam-kelleher-70912914/">LinkedIn</a>
+  </div>
+</div>
+
+<br>
+<div class="clearfix" style="width:33%; margin: auto;">
+  <div class="xs-block-grid-1 no-gutters">
+    {% for item in items %}
+      <div class="block-grid__item xs-border xs-p0 xs-align-middle" style="display: table; height: 150px">
+        <div style="display: table-cell; align-items: left; width: 25%; vertical-align: middle;">
+          <a href="{{item['url']}}">
+          <img src="{{item['thumbnail']}}">
+        </a>
+      </div>
+        <div style="display: table-cell; vertical-align: middle;">
+          <h2 class="bold xs-mb"><a href="{{item['url']}}" style="color: black;">{{item['title']}}</a></h3>
+          <p class="xs-text-6 text-gray-lighter xs-float-none">{{item['description']}}</p>
+        </div>
+      </div>
+    {% end %}
+  </div>
+</div>
+
+</body>
+</html>
