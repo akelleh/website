@@ -16,10 +16,10 @@
 </div>
 
 <br>
-<div class="clearfix" style="width:33%; margin: auto;">
+<div class="clearfix" style=" margin: auto;"> <!--width:33%;-->
   <div class="xs-block-grid-1 no-gutters">
     {% for item in items %}
-      <div class="block-grid__item xs-border xs-p0 xs-align-middle" style="display: table; height: 150px">
+      <div class=" xs-mx-auto xs-border xs-p0 xs-align-middle xs-fit" style="display: table; height: 150px"> <!--block-grid__item-->
         <div style="display: table-cell; align-items: left; width: 25%; vertical-align: middle;">
           <a href="{{item['url']}}">
           <img src="{{item['thumbnail']}}">
