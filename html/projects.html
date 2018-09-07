@@ -16,18 +16,19 @@
 </div>
 
 <br>
-<div class="clearfix" style="width:33%; margin: auto;">
+<div class="clearfix"  margin: auto;">
   <div class="xs-block-grid-1 no-gutters">
     {% for item in items %}
-      <div class="block-grid__item xs-border xs-p0 xs-align-middle" style="display: table; height: 150px">
-       <div style="display: table-cell; align-items: left; width: 25%; vertical-align: middle;">
+      <div class="col xs-col-12 xs-align-middle xs-border sm-col-8 sm-align-middle sm-offset-2 sm-border md-col-6
+                  md-align-middle md-offset-3 md-border lg-col-6 lg-align-middle lg-offset-3 lg-border" style="display: table; height: 150px">
+        <div style="display: table-cell; align-items: left; width: 25%; vertical-align: middle;">
           <a href="{{item['url']}}">
           <img src="{{item['thumbnail']}}">
         </a>
       </div>
         <div style="display: table-cell; vertical-align: middle;">
           <h2 class="bold xs-mb"><a href="{{item['url']}}" style="color: black;">{{item['title']}}</a></h3>
-          <p class="xs-text-6 text-gray-lighter xs-float-none">{{item['description']}}</p>
+          <p class="xs-text-5 lg-text-3 sm-text-4 md-text-4 text-gray-lighter xs-float-none">{{item['description']}}</p>
         </div>
       </div>
     {% end %}
