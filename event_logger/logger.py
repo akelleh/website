@@ -17,7 +17,7 @@ class Application(tornado.web.Application):
         ]
 
         self.event_logger = WebLogger(s3_bucket='aws-website-adamkelleher-q9wlb',
-                                      s3_path='pageviews-dev',
+                                      s3_path='pageviews',
                                       log_file_path='/app/tmp')
         super(Application, self).__init__(app_handlers, **app_settings)
 
