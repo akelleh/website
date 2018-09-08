@@ -5,17 +5,20 @@ import time
 
 class ProjectHandler(tornado.web.RequestHandler):
     def get(self):
+        event = {}
         try:
-            user_id = self.get_cookie("user_id")
+            event['user_id'] = self.get_cookie("user_id")
             if not user_id:
                 raise Exception
         except:
-            user_id = str(uuid.uuid4())
-            self.set_cookie("user_id", user_id)
-        event_id = str(uuid.uuid4())
-        ts = time.time()
-        page_id = 1
-        print(user_id)
+            event['user_id'] = str(uuid.uuid4())
+            self.set_cookie("user_id", event['user_id'])
+        event['event_id'] = str(uuid.uuid4())
+        event['ts'] = time.time()
+        event['page_id'] = 1
+        print(event)
+        self.application.logger_client.log(event)
+
         items = [
                     {
                      'title': 'Causality',
