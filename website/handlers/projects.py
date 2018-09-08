@@ -1,8 +1,21 @@
 import tornado.web
+import uuid
+import time
 
 
 class ProjectHandler(tornado.web.RequestHandler):
     def get(self):
+        try:
+            user_id = self.get_cookie("user_id")
+            if not user_id:
+                raise Exception
+        except:
+            user_id = str(uuid.uuid4())
+            self.set_cookie("user_id", user_id)
+        event_id = str(uuid.uuid4())
+        ts = time.time()
+        page_id = 1
+        print(user_id)
         items = [
                     {
                      'title': 'Causality',
