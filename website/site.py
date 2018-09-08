@@ -5,6 +5,7 @@ import os
 
 from handlers.writing import WritingHandler
 from handlers.projects import ProjectHandler
+from util import LoggerClient
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -24,6 +25,8 @@ class Application(tornado.web.Application):
             (r'^/writing$', WritingHandler),
             (r'^/projects$', ProjectHandler),
         ]
+
+        self.logger_client = LoggerClient()
         super(Application, self).__init__(app_handlers, **app_settings)
 
 
