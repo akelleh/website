@@ -1,11 +1,12 @@
 import logging
 import confluent_kafka
-from util import VideoCamera
+from util import VideoCamera, ThreadedVideoCamera
+import time
 
 
 def pub(message):
     kafka.produce(topic, value=message)
-    kafka.flush(timeout=1./60.)
+    kafka.flush(timeout=1./120.)
     logging.info("message published.")
 
 
@@ -30,5 +31,8 @@ if __name__ == "__main__":
     kafka = confluent_kafka.Producer(**conf)
 
     # consume messages
-    for message in VideoCamera().messages():
+    start = time.time(); count = 0.
+    for message in ThreadedVideoCamera().messages():
+        count += 1
         pub(message)
+        logging.info("Publishing at {} fps.".format(count / (time.time() - start)))

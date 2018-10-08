@@ -3,6 +3,7 @@ from util import ImagenetModel
 import uuid
 import confluent_kafka
 import pickle
+import time
 
 
 model = ImagenetModel()
@@ -41,6 +42,7 @@ if __name__ == "__main__":
     kafka.subscribe([topic])
 
     # consume messages
+    start = time.time(); count = 0
     while True:
         messages = kafka.consume(num_messages=max_messages, timeout=1./100.)  # 3. / 60.)
         for message in messages:
@@ -49,6 +51,10 @@ if __name__ == "__main__":
             if message.error():
                 logging.error('Error {}'.format(message.error().code()))
             else:
+                count += 1
+                logging.info("running at {} fps.".format(float(count) / (time.time() - start)))
+                if count > 1000:
+                    start = time.time(); count = 0
                 message_handler(message)
 
 
