@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/event_logger.iml" filepath="$PROJECT_DIR$/.idea/event_logger.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/imagenet_tagger.iml" filepath="$PROJECT_DIR$/.idea/imagenet_tagger.iml" />
     </modules>
   </component>
 </project>

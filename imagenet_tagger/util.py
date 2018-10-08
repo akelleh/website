@@ -4,7 +4,6 @@ import numpy as np
 from keras.applications import vgg16
 from keras.preprocessing.image import img_to_array
 from keras.applications.imagenet_utils import decode_predictions
-import binascii
 import io
 from PIL import Image
 
@@ -36,9 +35,6 @@ class ImagenetModel(object):
         return label
 
     def message_to_image(self, byte_string, shape=(500, 375), mode='RGB'):
-        #byte_data = binascii.unhexlify(byte_string)
         print(type(byte_string))
-        #stream = io.BytesIO(byte_string)
-        #print(type(stream))
         image = Image.open(io.BytesIO(byte_string))#mode, shape, byte_string)
         return image
