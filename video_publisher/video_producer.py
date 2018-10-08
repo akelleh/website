@@ -5,7 +5,7 @@ from util import VideoCamera
 
 def pub(message):
     kafka.produce(topic, value=message)
-    kafka.flush(timeout=1. / 120.)
+    kafka.flush(timeout=1./60.)
     logging.info("message published.")
 
 
@@ -30,8 +30,5 @@ if __name__ == "__main__":
     kafka = confluent_kafka.Producer(**conf)
 
     # consume messages
-    while True:
-        for message in VideoCamera().messages():
-            pub(message)
-
-
+    for message in VideoCamera().messages():
+        pub(message)

@@ -1,7 +1,7 @@
-docker build -t imagenet_tagger .
+docker build -t video_producer .
 docker run \
 --network="host" \
---runtime=nvidia \
 --restart unless-stopped \
---name imagenet_tagger \
--it imagenet_tagger
+--name video_producer \
+--device /dev/video0:/dev/video0 \
+-it video_producer 

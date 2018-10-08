@@ -2,14 +2,16 @@ import logging
 from util import ImagenetModel
 import uuid
 import confluent_kafka
+import pickle
 
 
-model = ImagenetModel(initialize_model=False)
+model = ImagenetModel()
+
 
 def message_handler(message):
+    message = pickle.loads(message.value())
     logging.info("message received.")
-    logging.info(type(message.value()))
-    logging.info(model.bytes_to_image(message.value()))
+    logging.info(model.predict(message))
 
 
 if __name__ == "__main__":
@@ -40,7 +42,7 @@ if __name__ == "__main__":
 
     # consume messages
     while True:
-        messages = kafka.consume(num_messages=max_messages, timeout=1. / 60.)
+        messages = kafka.consume(num_messages=max_messages, timeout=1./100.)  # 3. / 60.)
         for message in messages:
             if message is None:
                 continue

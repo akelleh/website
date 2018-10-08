@@ -27,14 +27,14 @@ class ImagenetModel(object):
             self.model = vgg16.VGG16(weights='imagenet')
 
     def predict(self, image):
-        numpy_image = img_to_array(image)
-        image_batch = np.expand_dims(numpy_image, axis=0)
+        #numpy_image = img_to_array(image)
+        image_batch = np.expand_dims(image, axis=0)
         processed_image = vgg16.preprocess_input(image_batch.copy())
         predictions = self.model.predict(processed_image)
         label = decode_predictions(predictions)
         return label
 
-    def message_to_image(self, byte_string, shape=(500, 375), mode='RGB'):
+    def bytes_to_image(self, byte_string, shape=(500, 375), mode='RGB'):
         print(type(byte_string))
         image = Image.open(io.BytesIO(byte_string))#mode, shape, byte_string)
         return image
