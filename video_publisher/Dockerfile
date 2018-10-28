@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:latest-gpu-py3 
+FROM python:3.7-slim
 
 COPY . /app
 
