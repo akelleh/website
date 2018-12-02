@@ -16,6 +16,6 @@ if __name__ == "__main__":
     logging.info('Importing logs every {} minutes.'.format(import_every))
 
     ioloop = tornado.ioloop.IOLoop.instance()
-    callback = tornado.ioloop.PeriodicCallback(import_logs, 1000. * 5.)  # 1000. * 60. * import_every)
+    callback = tornado.ioloop.PeriodicCallback(import_logs, 1000. * 60. * import_every)
     callback.start()
     ioloop.start()
