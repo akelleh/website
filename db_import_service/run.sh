@@ -1,5 +1,5 @@
 docker build -t importer .
-docker run -p 8890:8890 \
+docker run -p 8990:8990 \
 -e AWS_ACCESS_KEY_ID=`echo $AWS_ACCESS_KEY_ID` \
 -e AWS_SECRET_ACCESS_KEY=`echo $AWS_SECRET_ACCESS_KEY` \
 -e MYSQL_USERNAME=`echo $MYSQL_USERNAME` \

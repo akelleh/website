@@ -3,7 +3,9 @@ FROM python:3.6-slim
 COPY . /app
 
 RUN apt-get update
-# RUN apt-get install -y mysql-server libmysqlclient-dev
+RUN apt-get install -y build-essential gcc
+RUN apt-get install -y libmysqlclient-dev 
+# mysql-server
 RUN pip3 install --upgrade pip
 RUN pip3 install -r /app/requirements.txt
 
