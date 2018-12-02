@@ -4,6 +4,7 @@ import boto3
 import os
 import MySQLdb.connections
 import logging
+import pandas as pd
 
 
 class WebLogger(object):
@@ -106,7 +107,7 @@ class LightClient(MySQLdb.connections.Connection):
             columns = ', '.join([col_name for col_name in df.columns])
             cursor = self.cursor()
             cursor.executemany(
-                               """INSERT INTO {} ({}) VALUES ({})""".format(table, columns, value_string),
+                               """INSERT IGNORE INTO {} ({}) VALUES ({})""".format(table, columns, value_string),
                                df.values.tolist())
             self.commit()
             cursor.close()
@@ -131,6 +132,46 @@ def import_logs():
     # Create the logfile object, and load its contents into MySQL
     logfile = LogFile(os.path.split(newest_log)[-1],
                       log_file_path)
+    sql_username = os.environ['MYSQL_USERNAME']
+    sql_password = os.environ['MYSQL_PASSWORD']
+    sql_server = os.environ['MYSQL_SERVER_ADDRESS']
+    sql_database = os.environ['MYSQL_DATABASE']
+    sql_client = LightClient(sql_server,
+                             sql_username,
+                             sql_password,
+                             sql_database)
     for lines in logfile.read_lines():
-        logging.info([json.loads(line) for line in lines])
+        buffer = pd.DataFrame([json.loads(line) for line in lines])
+        sql_client.insert_dataframe(buffer, 'pageviews')
+        logging.info("Inserted buffer.")
 
+
+def backfill_logs():
+    logging.info("Importing.")
+    log_file_path = './tmp'
+
+    # download the latest log (should be more careful, but don't care too much about losing files),
+    # e.g. failing to backfill the gap if there's a long service failure
+    logger = WebLogger(s3_bucket='aws-website-adamkelleher-q9wlb',
+                       s3_path='pageviews',
+                       log_file_path=log_file_path)
+    logs = logger.list_logs()
+    for log in logs:
+        logger.download_log(log)
+        logging.info("downloaded: " + log)
+
+        # Create the logfile object, and load its contents into MySQL
+        logfile = LogFile(os.path.split(log)[-1],
+                          log_file_path)
+        sql_username = os.environ['MYSQL_USERNAME']
+        sql_password = os.environ['MYSQL_PASSWORD']
+        sql_server = os.environ['MYSQL_SERVER_ADDRESS']
+        sql_database = os.environ['MYSQL_DATABASE']
+        sql_client = LightClient(sql_server,
+                                 sql_username,
+                                 sql_password,
+                                 sql_database)
+        for lines in logfile.read_lines():
+            buffer = pd.DataFrame([json.loads(line) for line in lines])
+            sql_client.insert_dataframe(buffer, 'pageviews')
+            logging.info("Inserted buffer.")
