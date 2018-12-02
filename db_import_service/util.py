@@ -2,10 +2,8 @@ import datetime
 import json
 import boto3
 import os
-import MySQLdb
-
-
-def download_and_insert_pageviews():
+import MySQLdb.connections
+import logging
 
 
 class WebLogger(object):
@@ -43,6 +41,55 @@ class WebLogger(object):
         print(response)
         os.remove(self.log_file.full_path)
 
+    def list_logs(self):
+        response = self.s3_client.list_objects(Bucket=self.s3_bucket,
+                                               Prefix=self.s3_path)
+        logs = response.get('Contents', [])
+        while response.get('IsTruncated', False):
+            try:
+                marker = logs[-1].get('Key')
+                response = self.s3_client.list_objects(Bucket=self.s3_bucket,
+                                                       Prefix=self.s3_path,
+                                                       Marker=marker)
+                logs += response.get('Contents', [])
+            except:
+                break
+        return [log.get('Key') for log in logs]
+
+    def get_newest_log(self):
+        logs = self.list_logs()
+        date_format = '%Y-%m-%d_%H:%M.log'
+        log_dates = sorted([(datetime.datetime.strptime(os.path.split(log)[-1], date_format), log) for log in logs])
+        newest_log = log_dates[-1][1]
+        return newest_log
+
+    def download_log(self, log_path):
+        self.s3_client.download_file(self.s3_bucket,
+                                     log_path,
+                                     os.path.join(self.log_file_path, os.path.split(log_path)[-1]))
+
+
+class LogFile(object):
+    def __init__(self, filename, file_path):
+        self.filename = filename
+        self.full_path = os.path.join(file_path, filename)
+        self.empty = True
+
+    def append_event(self, event):
+        self.empty = False
+        with open(self.full_path, 'a') as fp:
+            fp.write(json.dumps(event)+'\n')
+
+    def read_lines(self, n=1000):
+        buffer = []
+        for line in open(os.path.join(self.full_path), 'r'):
+            buffer.append(line)
+            if len(buffer) >= n:
+                yield buffer
+                buffer = []
+        if len(buffer) > 0:
+            yield buffer
+
 
 class LightClient(MySQLdb.connections.Connection):
     def query_and_iterate(self, query):
@@ -66,3 +113,24 @@ class LightClient(MySQLdb.connections.Connection):
         except Exception as e:
             print(e)
             cursor.close()
+
+
+def import_logs():
+    logging.info("Importing.")
+    log_file_path = './tmp'
+
+    # download the latest log (should be more careful, but don't care too much about losing files),
+    # e.g. failing to backfill the gap if there's a long service failure
+    logger = WebLogger(s3_bucket='aws-website-adamkelleher-q9wlb',
+                       s3_path='pageviews',
+                       log_file_path=log_file_path)
+    newest_log = logger.get_newest_log()
+    logger.download_log(newest_log)
+    logging.info("downloaded: " + newest_log)
+
+    # Create the logfile object, and load its contents into MySQL
+    logfile = LogFile(os.path.split(newest_log)[-1],
+                      log_file_path)
+    for lines in logfile.read_lines():
+        logging.info([json.loads(line) for line in lines])
+
