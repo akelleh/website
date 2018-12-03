@@ -8,4 +8,4 @@ docker run -p 8990:8990 \
 -e MYSQL_DATABASE=`echo $MYSQL_DATABASE` \
 --restart unless-stopped \
 --name importer \
--it importer
+-it akelleh/importer
