@@ -11,7 +11,7 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging_level)
     logging.info('Starting sql import service.')
     logging.info('Back-filling logs...')
-    #backfill_logs()
+    backfill_logs()
 
     logging.info('Importing logs every {} minutes.'.format(import_every))
 
