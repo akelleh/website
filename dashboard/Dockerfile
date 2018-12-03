@@ -8,4 +8,4 @@ RUN apt-get install -y libmysqlclient-dev
 RUN pip3 install --upgrade pip
 RUN pip3 install -r /app/requirements.txt
 
-CMD ["python", "/app/dashboard.py"]
+CMD ["python3", "/app/dashboard.py"]
