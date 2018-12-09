@@ -31,7 +31,7 @@ class Application(tornado.web.Application):
 
 
 if __name__ == "__main__":
-    port = 8888
+    port = 9888
     address = '0.0.0.0'
     logging_level = logging.getLevelName('INFO')
     logging.getLogger().setLevel(logging_level)
