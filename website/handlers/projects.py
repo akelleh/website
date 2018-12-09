@@ -20,6 +20,12 @@ class ProjectHandler(tornado.web.RequestHandler):
                       'thumbnail': 'https://cdn-images-1.medium.com/max/800/1*3CPKsitAG2R6Qbj_bg1Kxg.png',
                       'url': 'https://medium.com/causal-data-science/causal-data-science-721ed63a4027'
                       },
+                     {
+                      'title': 'Traffic Dashboard',
+                      'description': 'See how many visitors come to this site! Updated every 15 minutes',
+                      'thumbnail': 'static/traffic.png',
+                      'url': 'http://adamkelleher.com:8051/'
+                     }
                 ]
 
         self.render("../html/projects.html", title="Projects", items=items)
