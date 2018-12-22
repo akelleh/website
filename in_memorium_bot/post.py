@@ -3,6 +3,7 @@ from auth import get_client
 import logging
 import os
 
+
 class ImgurPoster(object):
     def __init__(self):
         self.client = get_client()
@@ -35,4 +36,5 @@ class ImgurPoster(object):
 
         logging.info(post)
 
-
+    def post(self, post):
+        self.create_album("posts/{}".format(post))
