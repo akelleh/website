@@ -31,8 +31,7 @@ class ImgurPoster(object):
                                                  anon=False)
 
             uploaded_images.append(image)
-            print(image['link'])
-            print(uploaded_images)
+            logging.info(uploaded_images)
 
         logging.info(post)
 

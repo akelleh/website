@@ -17,8 +17,8 @@ if __name__ == "__main__":
     poster = ImgurPoster()
 
     ioloop = IOLoop()
+    
     for post in config:
-        when = time.time() + 10
         when = (pd.to_datetime(post['when']) - datetime.datetime(year=1969, month=12, day=31, hour=19)).total_seconds() # time minus ET zero point
         ioloop.call_at(when, poster.post, post['post'])
     ioloop.start()
