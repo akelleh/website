@@ -36,4 +36,4 @@ class ImgurPoster(object):
         logging.info(post)
 
     def post(self, post):
-        self.create_album("posts/{}".format(post))
+        self.create_album("/app/posts/{}".format(post))
