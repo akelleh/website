@@ -1,0 +1,38 @@
+
+
+
+<!DOCTYPE html>
+<html>
+<title>Projects</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<body>
+
+<div class="w3-container w3-teal">
+<h1>Projects</h1>
+</div>
+
+<div class="w3-content">
+  {% for item in items %}
+
+<div class="w3-row w3-margin">
+<div class="w3-third">
+  <a href="{{item['url']}}">
+    <img src="{{item['thumbnail']}}" style="width:100%;min-height:200px">>
+  </a>
+</div>
+<div class="w3-twothird w3-container">
+  <h2><a href="{{item['url']}}" style="color: black;">{{item['title']}}</a></h2>
+  <p>
+    {{item['description']}}
+  </p>
+</div>
+
+</div>
+    {% end %}
+</div>
+
+
+
+</body>
+</html>
