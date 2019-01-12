@@ -28,4 +28,4 @@ class ProjectHandler(tornado.web.RequestHandler):
                      }
                 ]
 
-        self.render("../html/projects.html", title="Projects", items=items)
+        self.render("../html/projects_2.html", title="Projects", items=items)
