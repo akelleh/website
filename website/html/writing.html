@@ -1,39 +1,117 @@
+<!DOCTYPE html>
 <html>
-<head>
-  <title>Writing</title>
-  <link rel="stylesheet" type='text/css' href="../static/solid.2.10.6.css">
-</head>
-<body>
-<div class="xs-text-center clearfix">
-  <div class="button-group xs-float-center">
-    <a class="button button--white" href="writing">Writing</a>
-    <a class="button button--white" href="teaching">Teaching</a>
-    <a class="button button--white" href="projects">Projects</a>
-    <a class="button button--white" href="static/adam_kelleher_resume.pdf">Resume</a>
-    <a class="button button--white" href="https://github.com/akelleh">Github</a>
-    <a class="button button--white" href="https://www.linkedin.com/in/adam-kelleher-70912914/">LinkedIn</a>
-  </div>
-</div>
+<title>Writing</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+<style>
+body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif} A {text-decoration: none;}
+</style>
+<body class="w3-light-grey">
 
-<br>
-<div class="clearfix"  margin: auto;">
-  <div class="xs-fit sm-fit no-gutters">
-    {% for item in items %}
-      <div class="col xs-col-12 xs-align-middle xs-border sm-col-8 sm-align-middle sm-offset-2 sm-border md-col-6
-                  md-align-middle md-offset-3 md-border lg-col-6 lg-align-middle lg-offset-3 lg-border" style="display: table; height: 150px">
-        <div style="display: table-cell; align-items: left; width: 25%; vertical-align: middle;">
-          <a href="{{item['url']}}">
-          <img src="{{item['thumbnail']}}">
-        </a>
-      </div>
-        <div style="display: table-cell; vertical-align: middle;">
-          <h2 class="bold xs-mb"><a href="{{item['url']}}" style="color: black;">{{item['title']}}</a></h3>
-          <p class="xs-text-5 lg-text-3 sm-text-4 md-text-4 text-gray-lighter xs-float-none">{{item['description']}}</p>
+<!-- w3-content defines a container for fixed size centered content,
+and is wrapped around the whole page content, except for the footer in this example -->
+<div class="w3-content" style="max-width:1400px">
+
+<!-- Header -->
+<header class="w3-container w3-center w3-padding-32">
+  <h1><b>Writing</b></h1>
+ </header>
+
+<!-- Grid -->
+<div class="w3-row">
+
+<!-- Blog entries -->
+<div class="w3-col l8 s12">
+  {% for item in items %}
+  <!-- Blog entry -->
+  <div class="w3-card-2 w3-margin w3-white">
+    <a href="{{item['url']}}">
+    <img src="{{item['thumbnail']}}" alt="Nature" style="width:100%">
+    <div class="w3-container">
+      <h3><b>{{item['title']}}</b></h3>
+      <h5>Adam Kelleher <span class="w3-opacity">April 7, 2014</span></h5>
+    </div>
+
+    <div class="w3-container">
+      <p>{{item['description']}}</p>
+    </a>
+      <div class="w3-row">
+        <div class="w3-col m8 s12">
+          <p><button class="w3-button w3-padding-large w3-white w3-border"><b><a href="{{item['url']}}">READ MORE »</a></b></button></p>
+        </div>
+        <div class="w3-col m4 w3-hide-small">
+          <p><span class="w3-padding-large w3-right"><b>Comments  </b> <span class="w3-tag">0</span></span></p>
         </div>
       </div>
-    {% end %}
+    </div>
   </div>
+  <hr>
+  {% end %}
+<!-- END BLOG ENTRIES -->
 </div>
+
+<!-- Introduction menu -->
+<div class="w3-col l4">
+  <!-- About Card -->
+  <div class="w3-card w3-margin w3-margin-top">
+  <img src="/static/adam.jpg" style="width:100%">
+    <div class="w3-container w3-white">
+      <h4><b>Adam Kelleher</b></h4>
+      <p>I'm just a science nerd who loves data, physics, computer science, causal inference, and cheesy TV shows.</p>
+    </div>
+  </div><hr>
+
+  <!-- Posts -->
+  <div class="w3-card w3-margin">
+    <div class="w3-container w3-padding">
+      <h4>More Stuff</h4>
+    </div>
+    <ul class="w3-ul w3-hoverable w3-white">
+      {% for project in projects %}
+      <li class="w3-padding-16">
+        <a href="{{project['url']}}">
+        <img src="{{project['thumbnail']}}" alt="Image" class="w3-left w3-margin-right" style="width:50px">
+        <span class="w3-large" href="{{project['url']}}">{{project['title']}}</span><br>
+          <span>{{project['description']}}</span></a>
+      </li>
+      {% end %}
+    </ul>
+  </div>
+  <hr>
+
+  <!-- Labels / tags
+  <div class="w3-card w3-margin">
+    <div class="w3-container w3-padding">
+      <h4>Tags</h4>
+    </div>
+    <div class="w3-container w3-white">
+    <p><span class="w3-tag w3-black w3-margin-bottom">Travel</span> <span class="w3-tag w3-light-grey w3-small w3-margin-bottom">New York</span> <span class="w3-tag w3-light-grey w3-small w3-margin-bottom">London</span>
+      <span class="w3-tag w3-light-grey w3-small w3-margin-bottom">IKEA</span> <span class="w3-tag w3-light-grey w3-small w3-margin-bottom">NORWAY</span> <span class="w3-tag w3-light-grey w3-small w3-margin-bottom">DIY</span>
+      <span class="w3-tag w3-light-grey w3-small w3-margin-bottom">Ideas</span> <span class="w3-tag w3-light-grey w3-small w3-margin-bottom">Baby</span> <span class="w3-tag w3-light-grey w3-small w3-margin-bottom">Family</span>
+      <span class="w3-tag w3-light-grey w3-small w3-margin-bottom">News</span> <span class="w3-tag w3-light-grey w3-small w3-margin-bottom">Clothing</span> <span class="w3-tag w3-light-grey w3-small w3-margin-bottom">Shopping</span>
+      <span class="w3-tag w3-light-grey w3-small w3-margin-bottom">Sports</span> <span class="w3-tag w3-light-grey w3-small w3-margin-bottom">Games</span>
+    </p>
+    </div>
+  </div>
+-->
+<!-- END Introduction Menu -->
+</div>
+
+<!-- END GRID -->
+</div><br>
+
+<!-- END w3-content -->
+</div>
+
+<!-- Footer -->
+<footer class="w3-container w3-dark-grey w3-padding-32 w3-margin-top">
+  <button class="w3-button w3-black w3-disabled w3-padding-large w3-margin-bottom">Previous</button>
+  <button class="w3-button w3-black w3-padding-large w3-margin-bottom">Next »</button>
+  <p>Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a></p>
+</footer>
 
 </body>
 </html>
+
