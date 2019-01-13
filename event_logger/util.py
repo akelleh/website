@@ -4,6 +4,11 @@ import boto3
 import os
 
 
+event_args = {'pageview':  ['event_id', 'ts', 'page_id', 'user_id'],
+              'click':     ["click_type", "item_id", "item_position", "user_id", "ts_", "event_id"],
+              'bad_event': []}
+
+
 class WebLogger(object):
     def __init__(self, s3_bucket, s3_path, log_file_path='.'):
         if not os.path.exists(log_file_path):
@@ -21,7 +26,6 @@ class WebLogger(object):
                                        now.day,
                                        now.hour,
                                        15*int(now.minute/15))
-
 
     def log(self, event):
         filename = self.get_current_filename()

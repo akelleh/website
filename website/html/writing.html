@@ -9,7 +9,7 @@
 body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif} A {text-decoration: none;}
 </style>
 <body class="w3-light-grey">
-
+<script src="static/logger.js"></script>
 <!-- w3-content defines a container for fixed size centered content,
 and is wrapped around the whole page content, except for the footer in this example -->
 <div class="w3-content" style="max-width:1400px">
@@ -27,7 +27,7 @@ and is wrapped around the whole page content, except for the footer in this exam
   {% for item in items %}
   <!-- Blog entry -->
   <div class="w3-card-2 w3-margin w3-white">
-    <a href="{{item['url']}}">
+    <a href="{{item['url']}}" onclick="log_click()">
     <img src="{{item['thumbnail']}}" alt="Nature" style="width:100%">
     <div class="w3-container">
       <h3><b>{{item['title']}}</b></h3>

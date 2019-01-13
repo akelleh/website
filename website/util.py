@@ -17,13 +17,14 @@ class LoggerClient(object):
 
 
 class Event(object):
-    def __init__(self, request_handler, page_id=None):
+    def __init__(self, request_handler, event_type='unset', page_id=None):
         self.request_handler = request_handler
         self.event_features = {}
         self.get_or_set_cookie()
         self.event_features['event_id'] = str(uuid.uuid4())
         self.event_features['ts'] = time.time()
         self.event_features['page_id'] = page_id
+        self.event_features['event_type'] = event_type
         print(self.event_features)
 
     def log(self):

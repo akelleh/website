@@ -4,7 +4,7 @@ from util import Event
 
 class ProjectHandler(tornado.web.RequestHandler):
     def get(self):
-        event = Event(self, page_id=1)
+        event = Event(self, page_id=1, event_type='pageview')
         event.log()
 
         items = [
