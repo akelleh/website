@@ -3,7 +3,7 @@ FROM python:3.7-slim
 COPY . /app
 
 RUN apt-get update
-RUN apt-get install -y libsm6 libxext6 libxrender-dev
+RUN apt-get install -y libsm6 libxext6 libxrender-dev libgtk2.0-dev libopencv-dev
 RUN pip3 install --upgrade pip
 RUN pip3 install -r /app/requirements.txt
 

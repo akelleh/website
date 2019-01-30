@@ -13,7 +13,7 @@ def pub(message):
 if __name__ == "__main__":
     # set producer config
     topic = 'Video'
-    address = '192.168.1.134'  # 'localhost'
+    address = 'localhost'
     zookeeper_port = 9092
     bootstrap_servers = '{}:{}'.format(address, zookeeper_port)
     max_messages = 1
@@ -35,4 +35,7 @@ if __name__ == "__main__":
     for message in ThreadedVideoCamera().messages():
         count += 1
         pub(message)
-        logging.info("Publishing at {} fps.".format(count / (time.time() - start)))
+        frame_rate = count / (time.time() - start)
+        logging.info("Publishing at {} fps.".format(frame_rate))
+        if frame_rate > 55:
+            time.sleep(0.1)

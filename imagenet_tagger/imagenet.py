@@ -18,8 +18,8 @@ def message_handler(message):
 if __name__ == "__main__":
     # set qr config
     topic = 'Video'
-    address = '192.168.1.134'  # 'localhost'
-    zookeeper_port = 9092
+    address = 'localhost'  # 'localhost'
+    zookeeper_port =  9092
     bootstrap_servers = '{}:{}'.format(address, zookeeper_port)
     max_messages = 1
     conf = {
@@ -38,13 +38,15 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging_level)
 
     # build the consumer
+    print("starting kafka")
     kafka = confluent_kafka.Consumer(**conf)
     kafka.subscribe([topic])
 
     # consume messages
     start = time.time(); count = 0
+    print("consuming")
     while True:
-        messages = kafka.consume(num_messages=max_messages, timeout=1./100.)  # 3. / 60.)
+        messages = kafka.consume(num_messages=max_messages, timeout= 3. / 60.)
         for message in messages:
             if message is None:
                 continue
