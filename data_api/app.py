@@ -8,9 +8,9 @@ class ChartHandler(tornado.web.RequestHandler):
     def get(self, chart):
         client = get_client()
         if chart == 'pageviews':
-            self.write(client.get_pageview_ts().to_json())
+            self.write(client.get_pageview_ts().to_json(orient='records'))
         elif chart == 'uniques':
-            self.write(client.get_uv_ts().to_json())
+            self.write(client.get_uv_ts().to_json(orient='records'))
         else:
             self.write("Chart type {} not supported.".format(chart))
 
