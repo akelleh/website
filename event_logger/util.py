@@ -22,7 +22,6 @@ class WebLogger(object):
                                        now.hour,
                                        15*int(now.minute/15))
 
-
     def log(self, event):
         filename = self.get_current_filename()
         if filename != self.log_file.filename:

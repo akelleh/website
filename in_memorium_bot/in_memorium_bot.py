@@ -20,6 +20,8 @@ if __name__ == "__main__":
     for post in config:
         when = get_run_time(post['when'])
         if when > time.time():
-            logging.info("Running at {}. Current time is {}.".format(when, time.time()))
+            logging.info("Posting {} at {}. Current time is {}.".format(post["post"],
+                                                                        when,
+                                                                        time.time()))
             ioloop.call_at(when, poster.post, post['post'])
     ioloop.start()
