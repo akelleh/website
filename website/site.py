@@ -5,6 +5,7 @@ import os
 
 from handlers.writing import WritingHandler
 from handlers.projects import ProjectHandler
+from handlers.book import BookHandler
 from util import LoggerClient
 
 
@@ -24,6 +25,7 @@ class Application(tornado.web.Application):
             (r'^/$', WritingHandler),
             (r'^/writing$', WritingHandler),
             (r'^/projects$', ProjectHandler),
+            (r'^/book$', BookHandler),
         ]
 
         self.logger_client = LoggerClient()
