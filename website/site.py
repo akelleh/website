@@ -25,7 +25,7 @@ class Application(tornado.web.Application):
             (r'^/$', WritingHandler),
             (r'^/writing$', WritingHandler),
             (r'^/projects$', ProjectHandler),
-            (r'^/book$', BookHandler),
+            (r'^/ml_book$', BookHandler),
         ]
 
         self.logger_client = LoggerClient()
