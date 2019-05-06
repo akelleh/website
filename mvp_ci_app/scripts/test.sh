@@ -1,2 +1,1 @@
-export PYTHONPATH=$PYTHONPATH:`pwd`
-pytest .
+python -m pytest .
