@@ -1,3 +1,0 @@
-tornado>=5.0.1
-urllib3>=1.23
-requests>=2.19.1

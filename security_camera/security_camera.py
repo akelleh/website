@@ -1,25 +1,36 @@
 import logging
 import numpy as np
-from util import ThreadedVideoCamera, initialize, get_diff, write_video
+from util import ThreadedVideoCamera, initialize, get_diff, write_video, put_video
 import time
+import sys
 
 
 if __name__ == "__main__":
-    camera = ThreadedVideoCamera(1)
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler(sys.stdout)
+    logger.addHandler(handler)
+
+    camera = ThreadedVideoCamera(-1)
+    logging.info("camera started")
     memory, capture = initialize(camera)
-    threshold = 0.001 * memory[-1].size[0] * memory[-1].size[1]
+    threshold = 0.1 * memory[-1].size[0] * memory[-1].size[1]
     time_of_last_capture = time.time()
     for image in camera.images():
         background = np.array([np.array(memory_image) for memory_image in memory]).mean(axis=0).astype(int)
         background_anomalous_count = (get_diff(image, background) > 0.05).sum()
         captured_stream_change = (get_diff(capture[-1], image) > 0).sum()
         if background_anomalous_count > threshold and captured_stream_change > 0:
+            logging.info("adding image: {} > {}".format(background_anomalous_count, threshold))
             capture.append(image)
             time_of_last_capture = time.time()
         else:
             if len(capture) > 50 and time.time() - time_of_last_capture > 5:
                 logging.info('writing out video.')
-                write_video('{}.avi'.format(time.time()), capture, frame_rate=30)
+                local_file_path = '{}.avi'.format(time.time())
+                write_video(local_file_path, capture, frame_rate=30)
+                put_video(local_file_path)
                 capture = [image]
             memory.append(image)
             memory.popleft()

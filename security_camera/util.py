@@ -5,6 +5,7 @@ from PIL import Image
 import pickle
 from threading import Thread
 import time
+import boto3
 
 
 def get_diff(image, background, threshold=0.05):
@@ -12,6 +13,14 @@ def get_diff(image, background, threshold=0.05):
     delta_zero = delta < threshold
     delta[delta_zero] = 0
     return delta
+
+
+def put_video(local_file_path, bucket='aws-website-adamkelleher-q9wlb'):
+    client = boto3.client('s3')
+    remote_file_key = 'security_camera/laptop/{}'.format(local_file_path)
+    client.upload_file(local_file_path,
+                       Key=remote_file_key,
+                       Bucket=bucket)
 
 
 def write_video(name, capture, frame_rate=15, codec='DIVX'):
