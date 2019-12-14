@@ -2,13 +2,17 @@ import logging
 import numpy as np
 from util import ThreadedVideoCamera, initialize, get_diff, write_video, save_to_s3
 import time
+import yaml
+
+with open('config.yml') as config_file:
+    config = yaml.load(config_file)
 
 
 if __name__ == "__main__":
     camera = ThreadedVideoCamera(-1)
     memory, capture = initialize(camera)
     print("initialized. monitoring...")
-    threshold = 0.01 * memory[-1].size[0] * memory[-1].size[1]
+    threshold = config['pixel_fraction'] * memory[-1].size[0] * memory[-1].size[1]
     time_of_last_capture = time.time()
     for image in camera.images():
         background = np.array([np.array(memory_image) for memory_image in memory]).mean(axis=0).astype(int)

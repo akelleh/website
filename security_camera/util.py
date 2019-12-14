@@ -7,11 +7,15 @@ from threading import Thread
 import time
 import os
 import boto3
+import yaml
+
+with open('config.yml') as config_file:
+    config = yaml.load(config_file)
 
 
 def save_to_s3(filename, bucket='aws-website-adamkelleher-q9wlb'):
     s3 = boto3.client('s3')
-    key = os.path.join('security_camera', 'akelleh-01', filename.split('/')[-1])
+    key = os.path.join('security_camera', config['host_name'], filename.split('/')[-1])
     print('uploading to s3')
     s3.upload_file(filename, Bucket=bucket, Key=key)
 
