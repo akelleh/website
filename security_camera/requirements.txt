@@ -4,3 +4,4 @@ keras-applications>=1.0.5
 keras-preprocessing>=1.0.3
 opencv-python>=3.4.3.18
 boto3
+pyyaml
