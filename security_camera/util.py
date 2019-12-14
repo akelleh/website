@@ -5,6 +5,15 @@ from PIL import Image
 import pickle
 from threading import Thread
 import time
+import os
+import boto3
+
+
+def save_to_s3(filename, bucket='aws-website-adamkelleher-q9wlb'):
+    s3 = boto3.client('s3')
+    key = os.path.join('security_camera', 'akelleh-01', filename.split('/')[-1])
+    print('uploading to s3')
+    s3.upload_file(filename, Bucket=bucket, Key=key)
 
 
 def get_diff(image, background, threshold=0.05):
