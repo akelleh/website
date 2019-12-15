@@ -5,7 +5,7 @@ from util import (ThreadedVideoCamera,
                   get_diff)
 import yaml
 
-with open('config.yml') as config_file:
+with open('/app/config.yml') as config_file:
     config = yaml.load(config_file)
 
 
