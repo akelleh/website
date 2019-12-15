@@ -9,6 +9,7 @@ import os
 import boto3
 import yaml
 
+
 with open('config.yml') as config_file:
     config = yaml.load(config_file)
 
@@ -28,10 +29,10 @@ def get_diff(image, background, threshold=0.05):
 
 
 def write_video(name, capture, frame_rate=15, codec='DIVX'):
-    height, width, layers = np.array(capture[-1]).shape
+    height, width, layers = capture[-1].shape
     writer = cv2.VideoWriter(name, cv2.VideoWriter_fourcc(*codec), frame_rate, (width, height))
     for frame in capture:
-        writer.write(np.array(frame))
+        writer.write(frame)
     writer.release()
 
 
@@ -72,8 +73,6 @@ class ThreadedVideoCamera(object):
         return self
 
     def get_frames(self):
-        start = time.time()
-        count = 0
         try:
             while True:
                 self.get_frame()
@@ -125,3 +124,39 @@ class ThreadedVideoCamera(object):
 
     def read(self):
         return self.image
+
+
+class FrameBuffer(object):
+    def __init__(self, window=60., callbacks=[]):
+        self.buffer = deque()
+        self.window = window
+        self.callbacks = callbacks
+        self.recording = []
+
+    def add_frame(self, frame):
+        self.buffer.append((time.time(), frame))
+        while len(self.buffer) > 2 and self.buffer[-1][0] - self.buffer[0][0] > self.window:
+            self.buffer.popleft()
+        self.execute_callbacks(frame)
+
+    def get_buffer(self):
+        return np.array([frame[1] for frame in self.buffer])
+
+    def record_buffer(self):
+        self.recording = [frame[1] for frame in self.buffer]
+
+    def execute_callbacks(self, frame):
+        for callback in self.callbacks:
+            callback(self, frame)
+
+    def record(self, frame):
+        self.recording.append(np.array(frame))
+
+    def clear_recording(self):
+        self.recording = []
+
+    def save_recording(self):
+        print("saving recording")
+        filename = '{}.avi'.format(time.time())
+        write_video(filename, self.recording, frame_rate=30)
+        save_to_s3(filename)
