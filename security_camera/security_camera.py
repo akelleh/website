@@ -2,11 +2,12 @@ import logging
 import numpy as np
 from util import (ThreadedVideoCamera,
                   FrameBuffer,
-                  check_and_record)
+                  check_and_record,
+                  pub_record_event)
 import yaml
 
 
-frame_buffer = FrameBuffer(callbacks=[check_and_record],
+frame_buffer = FrameBuffer(callbacks=[check_and_record,],
                            window=5.)
 
 if __name__ == "__main__":

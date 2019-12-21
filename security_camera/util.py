@@ -8,6 +8,9 @@ import time
 import os
 import boto3
 import yaml
+import confluent_kafka
+import datetime
+import json
 
 
 with open('/app/config.yml') as config_file:
@@ -27,10 +30,9 @@ def pub_record_event(frame_buffer, frame):
                "s3_path": os.path.join('security_camera', config['host_name'], frame_buffer.last_recording_name.split('/')[-1]),
                "host": config["host_name"],
                "service": "security_camera"}
-    kafka.produce(config['kafka_topic'], value=message)
+    kafka.produce(config['kafka_topic'], value=json.dumps(message))
     kafka.flush(timeout=1./120.)
-    logging.info("message published.")
-
+    print("message published.")
 
 def frame_is_different(frame_buffer, frame):
     memory = frame_buffer.get_buffer()
@@ -57,6 +59,7 @@ def check_and_record(frame_buffer, frame):
             frame_buffer.record(frame)
     elif not frame_is_different(frame_buffer, frame) and len(frame_buffer.recording) > 0:
         frame_buffer.save_recording()
+        pub_record_event(frame_buffer, frame)
         frame_buffer.clear_recording()
     else:
         pass
