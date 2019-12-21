@@ -8,10 +8,61 @@ import time
 import os
 import boto3
 import yaml
+import confluent_kafka
+import datetime
+import json
 
 
 with open('/app/config.yml') as config_file:
     config = yaml.load(config_file)
+
+
+bootstrap_servers = '{}:{}'.format(config['kafka_host'], config['kafka_port'])
+max_messages = 1
+conf = {
+        'bootstrap.servers': bootstrap_servers,
+       }
+
+kafka = confluent_kafka.Producer(**conf)
+
+def pub_record_event(frame_buffer, frame):
+    message = {"time": datetime.datetime.now().strftime('%Y-%m-%d'),
+               "s3_path": os.path.join('security_camera', config['host_name'], frame_buffer.last_recording_name.split('/')[-1]),
+               "host": config["host_name"],
+               "service": "security_camera"}
+    kafka.produce(config['kafka_topic'], value=json.dumps(message))
+    kafka.flush(timeout=1./120.)
+    print("message published.")
+
+def frame_is_different(frame_buffer, frame):
+    memory = frame_buffer.get_buffer()
+    if len(memory) <= 2:
+        return False
+    threshold = config['pixel_fraction'] * memory[-1].shape[0] * memory[-1].shape[1]
+    background = np.array([np.array(memory_image) for memory_image in memory]).mean(axis=0).astype(int)
+    background_anomalous_count = (get_diff(frame, background) > 0.15).sum()
+    captured_stream_change = (get_diff(memory[-2], frame) > 0).sum()
+    print("background: {}. Threshold: {}.".format(background_anomalous_count, threshold))
+    if background_anomalous_count > threshold and captured_stream_change > 0:
+        print("anomalous. {} > {}".format(background_anomalous_count, threshold))
+        return True
+    else:
+        return False
+
+
+def check_and_record(frame_buffer, frame):
+    if frame_is_different(frame_buffer, frame):
+        if len(frame_buffer.recording) == 0:
+            frame_buffer.record_buffer()
+            frame_buffer.record(frame)
+        else:
+            frame_buffer.record(frame)
+    elif not frame_is_different(frame_buffer, frame) and len(frame_buffer.recording) > 0:
+        frame_buffer.save_recording()
+        pub_record_event(frame_buffer, frame)
+        frame_buffer.clear_recording()
+    else:
+        pass
 
 
 def save_to_s3(filename, bucket='aws-website-adamkelleher-q9wlb'):
@@ -132,6 +183,7 @@ class FrameBuffer(object):
         self.window = window
         self.callbacks = callbacks
         self.recording = []
+        self.last_recording_name = None
 
     def add_frame(self, frame):
         self.buffer.append((time.time(), frame))
@@ -158,5 +210,8 @@ class FrameBuffer(object):
     def save_recording(self):
         print("saving recording")
         filename = '{}.avi'.format(time.time())
-        write_video(filename, self.recording, frame_rate=30)
+        write_video(filename, 
+                    self.recording, 
+                    frame_rate=len(self.buffer)/(self.buffer[-1][0] - self.buffer[0][0]))
+        self.last_recording_name = filename
         save_to_s3(filename)
