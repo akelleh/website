@@ -5,6 +5,7 @@ import random
 import math
 import numpy as np
 import skimage.io
+import boto3
 
 from mrcnn import utils
 import mrcnn.model as modellib
@@ -82,3 +83,8 @@ def load_and_detect(video_path):
             detections += detect(arr)
     return detections
 
+def download_from_s3(s3_bucket, s3_key):
+    s3 = boto3.client('s3')
+    local_path = './tmp/{}'.format(s3_key.split('/')[-1])
+    s3.download_file(s3_bucket, s3_key, local_path)
+    return local_path

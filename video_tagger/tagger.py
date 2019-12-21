@@ -1,24 +1,24 @@
 import logging
-from util import ImagenetModel
+from util import load_and_detect, download_from_s3 
 import uuid
 import confluent_kafka
-import pickle
 import time
-
-
-model = ImagenetModel()
+import json
 
 
 def message_handler(message):
-    message = pickle.loads(message.value())
+    message = json.loads(message.value())
     logging.info("message received.")
-    logging.info(model.predict(message))
+    s3_bucket = 'aws-website-adamkelleher-q9wlb'
+    local_path = download_from_s3(s3_bucket, message['s3_path'])
+    detections = load_and_detect(local_path)
+    logging.info(detections)
 
 
 if __name__ == "__main__":
     # set qr config
-    topic = 'Video'
-    address = '192.168.1.134'  # 'localhost'
+    topic = 'video_events'
+    address = '192.168.1.11'
     zookeeper_port = 9092
     bootstrap_servers = '{}:{}'.format(address, zookeeper_port)
     max_messages = 1
@@ -42,19 +42,14 @@ if __name__ == "__main__":
     kafka.subscribe([topic])
 
     # consume messages
-    start = time.time(); count = 0
     while True:
-        messages = kafka.consume(num_messages=max_messages, timeout=1./100.)  # 3. / 60.)
+        messages = kafka.consume(num_messages=max_messages, timeout=1./100.)
         for message in messages:
             if message is None:
                 continue
             if message.error():
                 logging.error('Error {}'.format(message.error().code()))
             else:
-                count += 1
-                logging.info("running at {} fps.".format(float(count) / (time.time() - start)))
-                if count > 1000:
-                    start = time.time(); count = 0
                 message_handler(message)
 
 
