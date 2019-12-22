@@ -1,0 +1,12 @@
+Pillow>=5.1.0
+numpy>=1.16.0
+confluent-kafka>=0.11.5
+Keras==2.2.4
+keras-applications>=1.0.8
+keras-preprocessing>=1.0.3
+av==6.2.0
+scikit-image==0.15.0
+mrcnn==0.2
+boto3==1.9.91
+Cython==0.29.14
+pycocotools==2.0.0
