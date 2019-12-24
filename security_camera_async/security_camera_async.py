@@ -10,10 +10,16 @@ import tornado.web
 import logging
 
 
-
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.write("Hello, World!")
+
+
+class PowerHandler(tornado.web.RequestHandler):
+    def get(self):
+        power_on = bool(int(self.get_argument('on', True)))
+        self.application.frame_buffer.power(power_on)
+        self.write("Recording turned on: {}.".format(self.application.frame_buffer.should_execute_callbacks))
 
 
 class Application(tornado.web.Application):
@@ -24,9 +30,18 @@ class Application(tornado.web.Application):
 
         app_handlers = [
             (r'^/$', MainHandler),
+            (r'^/power$', PowerHandler),
         ]
-        
+    
+        self.frame_buffer = FrameBuffer(callbacks=[check_and_record,],
+                                        window=5.)
+        self.camera = ThreadedVideoCamera(-1, initialize_thread=True)
+
         super(Application, self).__init__(app_handlers, **app_settings)
+
+    def next_frame(self):
+        image = self.camera.get_frame()
+        self.frame_buffer.add_frame(image)
 
 
 if __name__ == "__main__":
@@ -36,18 +51,14 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging_level)
     logging.info('starting camera api on %s:%d', address, port)
 
+    app = Application()
+
     http_server = tornado.httpserver.HTTPServer(
-        request_callback=Application(), xheaders=True)
+        request_callback=app, xheaders=True)
     http_server.listen(port, address=address)
     ioloop = tornado.ioloop.IOLoop.instance()
 
-    frame_buffer = FrameBuffer(callbacks=[check_and_record,],
-                                    window=5.)
-    camera = ThreadedVideoCamera(-1, initialize_thread=True)
-    def next_frame():
-        image = camera.get_frame()
-        frame_buffer.add_frame(image)
-    tornado.ioloop.PeriodicCallback(next_frame, 1000. / 60.).start()
+    tornado.ioloop.PeriodicCallback(app.next_frame, 1000. / 60.).start()
     
     ioloop.start()
 

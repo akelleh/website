@@ -185,12 +185,20 @@ class FrameBuffer(object):
         self.callbacks = callbacks
         self.recording = []
         self.last_recording_name = None
+        self.should_execute_callbacks = True
+
+    def power(self, power_on):
+        self.should_execute_callbacks = power_on 
+        if not power_on:
+            self.clear_recording()
+            self.buffer = deque()
 
     def add_frame(self, frame):
         self.buffer.append((time.time(), frame))
         while len(self.buffer) > 2 and self.buffer[-1][0] - self.buffer[0][0] > self.window:
             self.buffer.popleft()
-        self.execute_callbacks(frame)
+        if self.should_execute_callbacks:
+            self.execute_callbacks(frame)
 
     def get_buffer(self):
         return np.array([frame[1] for frame in self.buffer])
