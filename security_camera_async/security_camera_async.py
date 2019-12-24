@@ -12,7 +12,7 @@ import logging
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.write("Hello, World!")
+        self.render("html/index.html")
 
 
 class PowerHandler(tornado.web.RequestHandler):
@@ -31,6 +31,7 @@ class Application(tornado.web.Application):
         app_handlers = [
             (r'^/$', MainHandler),
             (r'^/power$', PowerHandler),
+            (r'/html/(.*)', tornado.web.StaticFileHandler, {'path': 'html'}),
         ]
     
         self.frame_buffer = FrameBuffer(callbacks=[check_and_record,],
