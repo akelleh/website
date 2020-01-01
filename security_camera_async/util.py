@@ -25,6 +25,12 @@ conf = {
 
 kafka = confluent_kafka.Producer(**conf)
 
+
+def array_to_image(X, filename='temp_image.png'
+    image = Image.fromarray(X, 'RGB')
+    image.save(filename)
+
+
 def pub_record_event(frame_buffer, frame):
     message = {"time": datetime.datetime.now().strftime('%Y-%m-%d'),
                "s3_path": os.path.join('security_camera', config['host_name'], frame_buffer.last_recording_name.split('/')[-1]),

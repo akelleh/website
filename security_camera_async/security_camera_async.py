@@ -3,7 +3,8 @@ import numpy as np
 from util import (ThreadedVideoCamera,
                   FrameBuffer,
                   check_and_record,
-                  pub_record_event)
+                  pub_record_event,
+                  array_to_image)
 import yaml
 import tornado.ioloop
 import tornado.web
@@ -20,6 +21,13 @@ class PowerHandler(tornado.web.RequestHandler):
         power_on = bool(int(self.get_argument('on', True)))
         self.application.frame_buffer.power(power_on)
         self.write("Recording turned on: {}.".format(self.application.frame_buffer.should_execute_callbacks))
+
+
+class FrameHandler(tornado.web.RequestHandler):
+    def get(self):
+        frame = self.application.camera.get_frame()
+        array_to_image(frame, filename='temp_image.png')
+        
 
 
 class Application(tornado.web.Application):
