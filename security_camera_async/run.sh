@@ -10,4 +10,5 @@ docker run \
 --name security_camera \
 --device /dev/video0:/dev/video0 \
 --network="host" \
+-p 8000:8000 \
 -it security_camera
