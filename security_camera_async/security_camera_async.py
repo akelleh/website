@@ -9,6 +9,7 @@ import yaml
 import tornado.ioloop
 import tornado.web
 import logging
+import os
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -39,12 +40,13 @@ class Application(tornado.web.Application):
     def __init__(self):
         app_settings = {
             'default_handler_args': dict(status_code=404),
+            "static_path": os.path.join(os.path.dirname(__file__), "html")
         }
 
         app_handlers = [
             (r'^/$', MainHandler),
             (r'^/power$', PowerHandler),
-            (r'/html/(.*)', tornado.web.StaticFileHandler, {'path': 'html'}),
+            (r'/html/(.*)', tornado.web.StaticFileHandler, {'path': os.path.join(os.path.dirname(__file__), "html")}),
             (r'^/status', StatusHandler),
         ]
     

@@ -13,7 +13,7 @@ import datetime
 import json
 
 
-with open('/app/config.yml') as config_file:
+with open(os.path.join(os.path.dirname(__file__), 'config.yml')) as config_file:
     config = yaml.load(config_file)
 
 
