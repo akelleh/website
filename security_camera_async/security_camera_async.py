@@ -28,7 +28,12 @@ class FrameHandler(tornado.web.RequestHandler):
         frame = self.application.camera.get_frame()
         array_to_image(frame, filename='temp_image.png')
         
-
+class StatusHandler(tornado.web.RequestHandler):
+    def get(self):
+        if self.application.frame_buffer.should_execute_callbacks:
+            self.write("On")
+        else:
+            self.write("Off")
 
 class Application(tornado.web.Application):
     def __init__(self):
@@ -40,6 +45,7 @@ class Application(tornado.web.Application):
             (r'^/$', MainHandler),
             (r'^/power$', PowerHandler),
             (r'/html/(.*)', tornado.web.StaticFileHandler, {'path': 'html'}),
+            (r'^/status', StatusHandler),
         ]
     
         self.frame_buffer = FrameBuffer(callbacks=[check_and_record,],
@@ -55,16 +61,15 @@ class Application(tornado.web.Application):
 
 if __name__ == "__main__":
     port = 8000
-    address = 'localhost'
     logging_level = logging.getLevelName('INFO')
     logging.getLogger().setLevel(logging_level)
-    logging.info('starting camera api on %s:%d', address, port)
+    logging.info('starting camera api on port %d', port)
 
     app = Application()
 
     http_server = tornado.httpserver.HTTPServer(
         request_callback=app, xheaders=True)
-    http_server.listen(port, address=address)
+    http_server.listen(port)
     ioloop = tornado.ioloop.IOLoop.instance()
 
     tornado.ioloop.PeriodicCallback(app.next_frame, 1000. / 60.).start()
