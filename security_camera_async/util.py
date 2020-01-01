@@ -26,7 +26,7 @@ conf = {
 kafka = confluent_kafka.Producer(**conf)
 
 
-def array_to_image(X, filename='temp_image.png'
+def array_to_image(X, filename='temp_image.png'):
     image = Image.fromarray(X, 'RGB')
     image.save(filename)
 
