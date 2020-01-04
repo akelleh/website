@@ -10,6 +10,7 @@ import tornado.ioloop
 import tornado.web
 import logging
 import os
+from io import BytesIO
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -31,9 +32,16 @@ class PowerHandler(tornado.web.RequestHandler):
 
 class FrameHandler(tornado.web.RequestHandler):
     def get(self):
-        frame = self.application.camera.get_frame()
-        array_to_image(frame, filename='temp_image.png')
-        
+        frame = self.application.camera.get_image()
+        logging.info(frame)
+        file_object = BytesIO()
+        frame.save(file_object, format="png")
+        image = file_object.getvalue()
+        self.write(image)
+        file_object.close()
+        self.set_header("Content-type", "image/png")
+
+
 class StatusHandler(tornado.web.RequestHandler):
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
@@ -45,6 +53,7 @@ class StatusHandler(tornado.web.RequestHandler):
             self.write("On")
         else:
             self.write("Off")
+
 
 class Application(tornado.web.Application):
     def __init__(self):
@@ -58,6 +67,7 @@ class Application(tornado.web.Application):
             (r'^/power$', PowerHandler),
             (r'/html/(.*)', tornado.web.StaticFileHandler, {'path': os.path.join(os.path.dirname(__file__), "html")}),
             (r'^/status', StatusHandler),
+            (r'^/frame', FrameHandler),
         ]
     
         self.frame_buffer = FrameBuffer(callbacks=[check_and_record,],
