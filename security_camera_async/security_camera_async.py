@@ -82,7 +82,7 @@ class Application(tornado.web.Application):
 
 
 if __name__ == "__main__":
-    port = 8001
+    port = 8000
     logging_level = logging.getLevelName('INFO')
     logging.getLogger().setLevel(logging_level)
     logging.info('starting camera api on port %d', port)
