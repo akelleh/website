@@ -31,7 +31,7 @@ and is wrapped around the whole page content, except for the footer in this exam
   {% for camera_name, camera in cameras.items() %}
   <!-- Blog entry -->
   <div class="w3-card-2 w3-margin w3-white">
-    <img src="camera_frame.jpg" alt="{{camera['camera_name']}}" style="width:100%">
+    <img src="http://{{camera['camera_ip']}}:{{camera['camera_port']}}/frame" alt="{{camera['camera_name']}}" style="width:100%">
     <div class="w3-container">
       <h3><b>{{camera['camera_name']}}</b></h3>
     </div>
