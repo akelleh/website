@@ -31,7 +31,7 @@ class Application(tornado.web.Application):
 
 
 if __name__ == "__main__":
-    port = 8000
+    port = 8001
     logging_level = logging.getLevelName('INFO')
     logging.getLogger().setLevel(logging_level)
     logging.info('starting security_ui on port %d', port)
