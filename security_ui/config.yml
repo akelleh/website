@@ -15,5 +15,5 @@ cameras_2:
 cameras:
   camera_1:
     camera_ip: localhost
-    camera_port: 8001
+    camera_port: 8000
     camera_name: 'Desktop'
