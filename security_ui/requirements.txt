@@ -1,0 +1,3 @@
+Pillow>=5.1.0
+pyyaml
+tornado>=5.1.1
