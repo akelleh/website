@@ -18,6 +18,11 @@ class MainHandler(tornado.web.RequestHandler):
 
 
 class PowerHandler(tornado.web.RequestHandler):
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Headers", "x-requested-with")
+        self.set_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+
     def get(self):
         power_on = bool(int(self.get_argument('on', True)))
         self.application.frame_buffer.power(power_on)
@@ -30,6 +35,11 @@ class FrameHandler(tornado.web.RequestHandler):
         array_to_image(frame, filename='temp_image.png')
         
 class StatusHandler(tornado.web.RequestHandler):
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Headers", "x-requested-with")
+        self.set_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+
     def get(self):
         if self.application.frame_buffer.should_execute_callbacks:
             self.write("On")
@@ -62,7 +72,7 @@ class Application(tornado.web.Application):
 
 
 if __name__ == "__main__":
-    port = 8000
+    port = 8001
     logging_level = logging.getLevelName('INFO')
     logging.getLogger().setLevel(logging_level)
     logging.info('starting camera api on port %d', port)

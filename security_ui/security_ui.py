@@ -3,11 +3,17 @@ import yaml
 import tornado.ioloop
 import tornado.web
 import logging
+import os
+
+
+with open(os.path.join(os.path.dirname(__file__), 'config.yml')) as config_file:
+    config = yaml.load(config_file)
 
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("html/index.html")
+        cameras = config['cameras']
+        self.render("html/index.html", cameras=cameras)
 
 
 class Application(tornado.web.Application):

@@ -5,27 +5,31 @@ function getRequest(theUrl){
     return xmlHttp.responseText;
 }
 
-function turnOff(){
-    baseUrl = window.location.protocol + "//" + window.location.host;
+function turnOff(host, port){
+    baseUrl = window.location.protocol + "//" + host + ":" + port;
     theUrl = baseUrl + "/power?on=0";
     getRequest(theUrl)
 }
 
-function turnOn(){
-    baseUrl = window.location.protocol + "//" + window.location.host;
+function turnOn(host, port){
+    baseUrl = window.location.protocol + "//" + host + ":" + port;
     theUrl = baseUrl + "/power?on=1";
     getRequest(theUrl)
 }
 
-function updateOnOffButton(){
-    baseUrl = window.location.protocol + "//" + window.location.host;
+function updateOnOffButton(host, port, div){
+    baseUrl = window.location.protocol + "//" + host + ":" + port;
     theUrl = baseUrl + "/status";
+    console.log(theUrl)
+
     var buttonStatus = getRequest(theUrl);
     if ( buttonStatus == 'On') {
-        buttonHtml = "<button onClick=\"turnOff();updateOnOffButton()\"><div id=\"on-off-button-text\">Turn Off Camera</div></button>"
+        buttonHtml = "<button class=\"w3-button w3-padding-large w3-white w3-border\" onClick=\"turnOff(\'" + host + "\',\'" + port + "\');updateOnOffButton(\'" + host + "\',\'" + port + "\',\'" + div + "\')\"><div id=\"on-off-button-text-" + div + "\">Turn Off Camera</div></button>"
     }
     else {
-        buttonHtml = "<button onClick=\"turnOn();updateOnOffButton()\"><div id=\"on-off-button-text\">Turn On Camera</div></button>"
+        buttonHtml = "<button class=\"w3-button w3-padding-large w3-white w3-border\" onClick=\"turnOn(\'" + host + "\',\'" + port + "\');updateOnOffButton(\'" + host + "\',\'" + port + "\',\'" + div + "\')\"><div id=\"on-off-button-text-" + div + "\">Turn On Camera</div></button>"
     }
-    $("#on-off-button").html(buttonHtml);
+    console.log(buttonHtml)
+    div = "#" + div;
+    $(div).html(buttonHtml);
 }
