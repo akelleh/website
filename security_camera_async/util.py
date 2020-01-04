@@ -11,6 +11,7 @@ import yaml
 import confluent_kafka
 import datetime
 import json
+import logging
 
 
 with open(os.path.join(os.path.dirname(__file__), 'config.yml')) as config_file:
@@ -125,6 +126,12 @@ class ThreadedVideoCamera(object):
         # if self.success:
         #    self.image = self.resize(image)
         return self.image
+
+    def get_image(self):
+        image_array = self.get_frame()
+        logging.info(image_array.shape)
+        image_array = image_array[:, :, [2,1,0]]
+        return Image.fromarray(image_array, mode='RGB')
 
     def thread_stream(self):
         Thread(target=self.get_frames, args=()).start()

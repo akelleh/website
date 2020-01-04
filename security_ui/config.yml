@@ -1,0 +1,19 @@
+host_name: 'laptop'
+pixel_fraction: 0.01
+kafka_host: '192.168.1.11'
+kafka_port: 9092
+kafka_topic: 'video_events'
+cameras_2:
+  camera_1:
+    camera_ip: 192.168.1.5
+    camera_port: 8000
+    camera_name: 'Loft'
+  camera_2:
+    camera_ip: 192.168.1.6
+    camera_port: 8000
+    camera_name: 'Kitchen'
+cameras:
+  camera_1:
+    camera_ip: localhost
+    camera_port: 8001
+    camera_name: 'Desktop'
