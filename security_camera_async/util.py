@@ -59,12 +59,15 @@ def frame_is_different(frame_buffer, frame):
 
 def check_and_record(frame_buffer, frame):
     if frame_is_different(frame_buffer, frame):
+        frame_buffer.saw_motion()
         if len(frame_buffer.recording) == 0:
             frame_buffer.record_buffer()
             frame_buffer.record(frame)
         else:
             frame_buffer.record(frame)
-    elif not frame_is_different(frame_buffer, frame) and len(frame_buffer.recording) > 0:
+    elif not frame_is_different(frame_buffer, frame) and len(frame_buffer.recording) > 0 and time.time() - frame_buffer.time_of_last_motion < 5:
+        frame_buffer.record(frame)
+    elif not frame_is_different(frame_buffer, frame) and len(frame_buffer.recording) > 0 and time.time() - frame_buffer.time_of_last_motion >= 5:
         frame_buffer.save_recording()
         #pub_record_event(frame_buffer, frame)
         frame_buffer.clear_recording()
@@ -199,6 +202,7 @@ class FrameBuffer(object):
         self.recording = []
         self.last_recording_name = None
         self.should_execute_callbacks = True
+        self.time_of_last_motion = -np.inf
 
     def power(self, power_on):
         self.should_execute_callbacks = power_on 
@@ -237,3 +241,6 @@ class FrameBuffer(object):
                     frame_rate=len(self.buffer)/(self.buffer[-1][0] - self.buffer[0][0]))
         self.last_recording_name = filename
         save_to_s3(filename)
+
+    def saw_motion(self):
+        self.time_of_last_motion = time.time()

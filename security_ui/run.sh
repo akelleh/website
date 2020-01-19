@@ -6,7 +6,6 @@ docker run \
 -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
 -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
 -p 8001:8001 \
---network="host" \
 --restart unless-stopped \
 --name security_ui \
 --network="host" \
