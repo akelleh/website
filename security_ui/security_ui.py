@@ -16,6 +16,14 @@ class MainHandler(tornado.web.RequestHandler):
         self.render("html/index.html", cameras=cameras)
 
 
+class ImageHandler(tornado.web.RequestHandler):
+    def get(self, camera_name):
+        cameras = {camera.get('camera_name', ''): camera for camera in config['cameras'].values()}
+        camera_ip = cameras[camera_name]['camera_ip']
+        camera_port = cameras[camera_name]['camera_port']
+        self.redirect("http://{}:{}/frame".format(camera_ip, camera_port))
+
+
 class Application(tornado.web.Application):
     def __init__(self):
         app_settings = {
@@ -25,6 +33,7 @@ class Application(tornado.web.Application):
 
         app_handlers = [
             (r'^/$', MainHandler),
+            (r'^/image/(.*)$', ImageHandler),
             (r'/html/(.*)', tornado.web.StaticFileHandler, {'path': os.path.join(os.path.dirname(__file__), "html")}),
         ]
 
