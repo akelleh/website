@@ -2,8 +2,10 @@ import logging
 import yaml
 import tornado.ioloop
 import tornado.web
+import tornado.gen
 import logging
 import os
+from tornado.httpclient import AsyncHTTPClient
 
 
 with open(os.path.join(os.path.dirname(__file__), 'config.yml')) as config_file:
@@ -17,11 +19,15 @@ class MainHandler(tornado.web.RequestHandler):
 
 
 class ImageHandler(tornado.web.RequestHandler):
+    @tornado.gen.coroutine
     def get(self, camera_name):
         cameras = {camera.get('camera_name', ''): camera for camera in config['cameras'].values()}
         camera_ip = cameras[camera_name]['camera_ip']
         camera_port = cameras[camera_name]['camera_port']
-        self.redirect("http://{}:{}/frame".format(camera_ip, camera_port))
+        client = AsyncHTTPClient()
+        image = yield client.fetch("http://{}:{}/frame".format(camera_ip, camera_port))
+        self.write(image.body)
+        self.set_header("Content-type", "image/png")
 
 
 class Application(tornado.web.Application):
