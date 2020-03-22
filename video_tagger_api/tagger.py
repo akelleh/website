@@ -3,7 +3,6 @@ import tornado.web
 import logging
 from util import load_model, poll_cameras
 
-
 class MainHandler(tornado.web.RequestHandler):
     def post(self):
         self.set_header("Content-type", "image/png")
@@ -40,6 +39,5 @@ if __name__ == "__main__":
     ioloop = tornado.ioloop.IOLoop.instance()
 
     tornado.ioloop.PeriodicCallback(poll_cameras, 1000. / 60.).start()
-
     ioloop.start()
 

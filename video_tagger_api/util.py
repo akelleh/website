@@ -12,6 +12,7 @@ import numpy as np
 ROOT_DIR = os.path.abspath("./Mask_RCNN")
 # Import Mask RCNN
 sys.path.append(ROOT_DIR)  # To find local version of the library
+
 from mrcnn import utils
 import mrcnn.model as modellib
 # import coco config
@@ -60,9 +61,7 @@ def load_model():
     model.load_weights(COCO_MODEL_PATH, by_name=True)
     return model
 
-
 model = load_model()
-
 
 @tornado.gen.coroutine
 def poll_cameras():
