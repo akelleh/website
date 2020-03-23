@@ -61,19 +61,27 @@ def load_model():
     model.load_weights(COCO_MODEL_PATH, by_name=True)
     return model
 
+
 model = load_model()
+
 
 @tornado.gen.coroutine
 def poll_cameras():
     client = AsyncHTTPClient()
+    images_to_tag = []
+    locations = []
     for camera in config['cameras'].values():
         image_bytes = yield client.fetch("http://{}:{}/frame".format(camera['camera_ip'],
                                                                      camera['camera_port']))
         image = Image.open(io.BytesIO(image_bytes.body))
         X = np.asarray(image)
+        images_to_tag.append(X)
+        locations.append(camera['camera_name'])
         logging.info('got image from {}, {}'.format(camera['camera_name'], np.asarray(image).shape))
-        results = model.detect([X])
-        detections = [{"detection_type": class_names[class_id],
-                       "probability": probability} for class_id, probability in zip(results[0]['class_ids'],
-                                                                                    results[0]['scores'])]
-        logging.info(detections)
+    results = model.detect(images_to_tag)
+    detections = []
+    for location, result in zip(locations, results):
+        detections += [{"detection_type": class_names[class_id],
+                        "probability": probability} for class_id, probability in zip(result['class_ids'],
+                                                                                     result['scores'])]
+    logging.info(detections)
