@@ -13,6 +13,10 @@ import os
 from io import BytesIO
 
 
+with open(os.path.join(os.path.dirname(__file__), 'config.yml')) as config_file:
+    config = yaml.load(config_file)
+
+
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.render("html/index.html")
@@ -72,7 +76,8 @@ class Application(tornado.web.Application):
     
         self.frame_buffer = FrameBuffer(callbacks=[check_and_record,],
                                         window=5.)
-        self.camera = ThreadedVideoCamera(-1, initialize_thread=True)
+        camera = config.get('camera_address', -1)
+        self.camera = ThreadedVideoCamera(camera, initialize_thread=True)
 
         super(Application, self).__init__(app_handlers, **app_settings)
 
@@ -97,4 +102,3 @@ if __name__ == "__main__":
     tornado.ioloop.PeriodicCallback(app.next_frame, 1000. / 60.).start()
     
     ioloop.start()
-
