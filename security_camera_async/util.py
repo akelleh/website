@@ -57,7 +57,7 @@ def frame_is_different(frame_buffer, frame):
         return False
 
 
-def check_and_record(frame_buffer, frame):
+def check_and_record(frame_buffer, frame, check_every=1):
     if frame_is_different(frame_buffer, frame):
         frame_buffer.saw_motion()
         if len(frame_buffer.recording) == 0:
@@ -195,17 +195,27 @@ class ThreadedVideoCamera(object):
 
 
 class FrameBuffer(object):
-    def __init__(self, window=60., callbacks=[]):
+    def __init__(self, window=60., callbacks=[], execute_callbacks_every=1):
         self.buffer = deque()
         self.window = window
         self.callbacks = callbacks
         self.recording = []
         self.last_recording_name = None
-        self.should_execute_callbacks = True
         self.time_of_last_motion = -np.inf
+        self.execute_callbacks_every = execute_callbacks_every
+        self.checks_since_last_callback_execution = 0
+        self.power_on = True
+
+    def should_execute_callbacks(self):
+        if self.power_on and self.checks_since_last_callback_execution > self.execute_callbacks_every:
+            self.checks_since_last_callback_execution = 0
+            return True
+        else:
+            self.checks_since_last_callback_execution += 1
+            return False
 
     def power(self, power_on):
-        self.should_execute_callbacks = power_on 
+        self.power_on = power_on
         if not power_on:
             self.clear_recording()
             self.buffer = deque()
@@ -214,7 +224,7 @@ class FrameBuffer(object):
         self.buffer.append((time.time(), frame))
         while len(self.buffer) > 2 and self.buffer[-1][0] - self.buffer[0][0] > self.window:
             self.buffer.popleft()
-        if self.should_execute_callbacks:
+        if self.should_execute_callbacks():
             self.execute_callbacks(frame)
 
     def get_buffer(self):
