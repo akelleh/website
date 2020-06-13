@@ -3,4 +3,7 @@ pixel_fraction: 0.01
 kafka_host: '192.168.1.12'
 kafka_port: 9092
 kafka_topic: 'video_events'
-#camera_address: 'rtsp://admin:@192.168.1.19/'
+camera_address: 'rtsp://admin:@192.168.1.19/'
+show_video: True
+pool_threads: 2
+motion_frame: 1  # seconds

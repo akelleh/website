@@ -41,38 +41,41 @@ def pub_record_event(frame_buffer, frame):
     kafka.flush(timeout=1./120.)
     print("message published.")
 
-def frame_is_different(frame_buffer, frame):
-    memory = frame_buffer.get_buffer()
-    if len(memory) <= 2:
-        return False
-    threshold = config['pixel_fraction'] * memory[-1].shape[0] * memory[-1].shape[1]
-    background = np.array([np.array(memory_image) for memory_image in memory]).mean(axis=0).astype(int)
-    background_anomalous_count = (get_diff(frame, background) > 0.15).sum()
-    captured_stream_change = (get_diff(memory[-2], frame) > 0).sum()
-    print("background: {}. Threshold: {}.".format(background_anomalous_count, threshold))
-    if background_anomalous_count > threshold and captured_stream_change > 0:
-        print("anomalous. {} > {}".format(background_anomalous_count, threshold))
-        return True
-    else:
-        return False
-
-
-def check_and_record(frame_buffer, frame, check_every=1):
-    if frame_is_different(frame_buffer, frame):
-        frame_buffer.saw_motion()
-        if len(frame_buffer.recording) == 0:
-            frame_buffer.record_buffer()
-            frame_buffer.record(frame)
+def frame_is_different(frame_buffer):
+    current_time = time.time()
+    with open("log.txt", "a+") as f:
+        f.write(f'called at {current_time}\n')
+        memory = frame_buffer.get_buffer()
+        f.write("\tmemory len is {}\n".format(len(memory)))
+        if len(memory) <= 2:
+            return False
+        history = memory[:int(len(memory) / 2)]
+        current = memory[int(len(memory) / 2):]
+        f.write("\trunning the rest.\n")
+        threshold = config['pixel_fraction'] * memory[-1].shape[0] * memory[-1].shape[1]
+        background = np.array([np.array(memory_image) for memory_image in history]).mean(axis=0).astype(int)
+        frame = np.array([np.array(memory_image) for memory_image in current]).mean(axis=0).astype(int)
+        background_anomalous_count = (get_diff(frame, background) > 0.15).sum()
+        captured_stream_change = (get_diff(current[-2], current[-1]) > 0).sum()
+        f.write("\tbackground: {}. Threshold: {}.\n".format(background_anomalous_count, threshold))
+        if background_anomalous_count > threshold and captured_stream_change > 0:
+            f.write("\tanomalous. {} > {}\n".format(background_anomalous_count, threshold))
+            return True
         else:
-            frame_buffer.record(frame)
-    elif not frame_is_different(frame_buffer, frame) and len(frame_buffer.recording) > 0 and time.time() - frame_buffer.time_of_last_motion < 5:
-        frame_buffer.record(frame)
-    elif not frame_is_different(frame_buffer, frame) and len(frame_buffer.recording) > 0 and time.time() - frame_buffer.time_of_last_motion >= 5:
-        frame_buffer.save_recording()
-        #pub_record_event(frame_buffer, frame)
-        frame_buffer.clear_recording()
-    else:
-        pass
+            return False
+
+
+def start_or_stop_recording(frame_buffer, frame):
+    if not frame_buffer.is_recording:
+        if frame_is_different(frame_buffer):
+            frame_buffer.saw_motion()
+            frame_buffer.start_recording()
+    if frame_buffer.is_recording:
+        if time.time() - frame_buffer.time_of_last_motion > config.get("motion_frame", 5):
+            if not frame_is_different(frame_buffer):
+                frame_buffer.stop_recording()
+            else:
+                frame_buffer.saw_motion()
 
 
 def save_to_s3(filename, bucket='aws-website-adamkelleher-q9wlb'):
@@ -124,10 +127,10 @@ class ThreadedVideoCamera(object):
     def __del__(self):
         self.video.release()
 
-    def get_frame(self):
+    def get_frame(self, should_resize=False):
         self.success, self.image = self.video.read()
-        # if self.success:
-        #    self.image = self.resize(image)
+        if self.success and should_resize:
+            self.image = self.resize(self.image)
         return self.image
 
     def get_image(self):
@@ -195,23 +198,33 @@ class ThreadedVideoCamera(object):
 
 
 class FrameBuffer(object):
-    def __init__(self, window=60., callbacks=[], execute_callbacks_every=1):
+    def __init__(self, window=120., callbacks=[]):
         self.buffer = deque()
         self.window = window
         self.callbacks = callbacks
         self.recording = []
         self.last_recording_name = None
         self.time_of_last_motion = -np.inf
-        self.execute_callbacks_every = execute_callbacks_every
-        self.checks_since_last_callback_execution = 0
         self.power_on = True
+        self.is_recording = False
+        self.is_saving = False
+
+    def start_recording(self):
+        self.record_buffer()
+        self.is_recording = True
+
+    def stop_recording(self):
+        if not self.is_saving:  # make sure it wasn't called from another thread
+            self.is_saving = True
+            self.save_recording()
+            self.clear_recording()
+            self.is_recording = False
+        self.is_saving = False
 
     def should_execute_callbacks(self):
-        if self.power_on and self.checks_since_last_callback_execution > self.execute_callbacks_every:
-            self.checks_since_last_callback_execution = 0
+        if self.power_on:
             return True
         else:
-            self.checks_since_last_callback_execution += 1
             return False
 
     def power(self, power_on):
@@ -222,10 +235,10 @@ class FrameBuffer(object):
 
     def add_frame(self, frame):
         self.buffer.append((time.time(), frame))
+        if self.is_recording:
+            self.record(frame)
         while len(self.buffer) > 2 and self.buffer[-1][0] - self.buffer[0][0] > self.window:
             self.buffer.popleft()
-        if self.should_execute_callbacks():
-            self.execute_callbacks(frame)
 
     def get_buffer(self):
         return np.array([frame[1] for frame in self.buffer])
