@@ -92,10 +92,6 @@ class Application(tornado.web.Application):
             cv2.waitKey(1)
         self.frame_buffer.add_frame(image)
 
-    def create_empty_file(self):
-        with open("test.txt", "w+") as f:
-            f.write('test')
-
     async def check_and_execute_callbacks(self):
         if self.frame_buffer.should_execute_callbacks():
             frame = self.frame_buffer.buffer[-1][1]
