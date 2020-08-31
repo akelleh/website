@@ -45,18 +45,14 @@ def frame_is_different(frame_buffer):
     current_time = time.time()
     with open("log.txt", "a+") as f:
         f.write(f'called at {current_time}\n')
-        memory = frame_buffer.get_buffer()
-        f.write("\tmemory len is {}\n".format(len(memory)))
-        if len(memory) <= 2:
+        if len(frame_buffer.buffer_times) <= 2:
             return False
-        history = memory[:int(len(memory) / 2)]
-        current = memory[int(len(memory) / 2):]
         f.write("\trunning the rest.\n")
-        threshold = config['pixel_fraction'] * memory[-1].shape[0] * memory[-1].shape[1]
-        background = np.array([np.array(memory_image) for memory_image in history]).mean(axis=0).astype(int)
-        frame = np.array([np.array(memory_image) for memory_image in current]).mean(axis=0).astype(int)
+        threshold = config['pixel_fraction'] * frame_buffer.buffer.array.shape[1:][0] * frame_buffer.buffer.array.shape[1:][1]
+        background = frame_buffer.buffer[:int(len(frame_buffer.buffer.array) / 2)].mean(axis=0).astype(int)
+        frame = frame_buffer.buffer[int(len(frame_buffer.buffer.array) / 2):].mean(axis=0).astype(int)
         background_anomalous_count = (get_diff(frame, background) > 0.15).sum()
-        captured_stream_change = (get_diff(current[-2], current[-1]) > 0).sum()
+        captured_stream_change = (get_diff(frame_buffer.buffer[-2], frame_buffer.buffer[-1]) > 0).sum()
         f.write("\tbackground: {}. Threshold: {}.\n".format(background_anomalous_count, threshold))
         if background_anomalous_count > threshold and captured_stream_change > 0:
             f.write("\tanomalous. {} > {}\n".format(background_anomalous_count, threshold))
@@ -128,7 +124,10 @@ class ThreadedVideoCamera(object):
         self.video.release()
 
     def get_frame(self, should_resize=False):
-        self.success, self.image = self.video.read()
+        #self.success, self.image = self.video.read()
+        self.success = False
+        while not self.success:
+            self.success, self.image = self.video.read()
         if self.success and should_resize:
             self.image = self.resize(self.image)
         return self.image
@@ -198,12 +197,10 @@ class ThreadedVideoCamera(object):
 
 
 class FrameBuffer(object):
-    def __init__(self, window=10., callbacks=[], verbose=False, max_buffer_frames=None):
-        if max_buffer_frames:
-            self.buffer = deque(maxlen=max_buffer_frames)
-        else:
-            self.buffer = deque()
+    def __init__(self, shape, window=10., callbacks=[], verbose=False, max_buffer_frames=150):
+        self.buffer = CircularBuffer(shape=shape, maxlen=max_buffer_frames)
         self.max_buffer_frames = max_buffer_frames
+        self.buffer_times = deque(maxlen=max_buffer_frames)
         self.window = window
         self.callbacks = callbacks
         self.recording = None
@@ -213,10 +210,13 @@ class FrameBuffer(object):
         self.is_recording = False
         self.is_saving = False
         self.verbose = verbose
+        self.shape = shape
 
     def start_recording(self):
         filename = f'{time.time()}.avi'
-        self.recording = Video(filename, self.buffer)
+        self.recording = Video(filename,
+                               self.buffer,
+                               self.buffer_times)
         self.is_recording = True
 
     def stop_recording(self):
@@ -237,29 +237,26 @@ class FrameBuffer(object):
         self.power_on = power_on
         if not power_on:
             self.clear_recording()
-            if self.max_buffer_frames:
-                self.buffer = deque(maxlen=self.max_buffer_frames)
-            else:
-                self.buffer = deque()
+            self.buffer = CircularBuffer(shape=self.shape,
+                                         maxlen=self.max_buffer_frames)
+            self.buffer_times = deque(maxlen=self.max_buffer_frames)
 
     def add_frame(self, frame):
-        self.buffer.append((time.time(), frame))
+        logging.info("Recording frame.")
+        self.buffer_times.append(time.time())
+        self.buffer.append(np.array(frame, dtype=np.uint8))
         if self.verbose:
-            logging.info(f"Added frame to buffer. {len(self.buffer)} frames.")
+            logging.info(f"Added frame to buffer. {len(self.buffer_times)} frames.")
         if self.is_recording:
             self.record(frame)
-        while len(self.buffer) > 2 and self.buffer[-1][0] - self.buffer[0][0] > self.window:
-            self.buffer.popleft()
-
-    def get_buffer(self):
-        return np.array([frame[1] for frame in self.buffer])
 
     def execute_callbacks(self, frame):
+        logging.info("Executing callbacks.")
         for callback in self.callbacks:
             callback(self, frame)
 
     def record(self, frame):
-        self.recording.write_frame(np.array(frame))
+        self.recording.write_frame(np.array(frame, dtype=np.uint8))
         if self.verbose:
             logging.info(f"Added frame to recording. {self.recording.frame_count} frames.")
 
@@ -271,28 +268,75 @@ class FrameBuffer(object):
         if self.recording:
             self.last_recording_name = self.recording.filename
             save_to_s3(self.recording.filename)
+            os.remove(self.recording.filename)
 
     def saw_motion(self):
         self.time_of_last_motion = time.time()
 
 
 class Video(object):
-    def __init__(self, filename, buffer, codec='DIVX'):
-        height, width, layers = buffer[-1][1].shape
-        frame_rate = len(buffer)/(buffer[-1][0] - buffer[0][0])
+    def __init__(self, filename, buffer, buffer_times, codec='DIVX'):
+        height, width, layers = buffer.array.shape[1:]
+        logging.info(f"Video writing as {width}, {height}, {layers}")
+        frame_rate = len(buffer_times)/(buffer_times[-1] - buffer_times[0])
         self.writer = cv2.VideoWriter(filename,
                                       cv2.VideoWriter_fourcc(*codec),
                                       frame_rate,
                                       (width, height))
-        to_write = buffer.copy()
-        for time, frame in to_write:
-            self.writer.write(frame)
-        self.filename = filename
         self.frame_count = 0
+        for i in range(len(buffer.array)):
+            frame = buffer[i]
+            self.write_frame(frame)
+        self.filename = filename
 
     def write_frame(self, frame):
-        self.writer.write(frame)
+        logging.info(f"Writing frame: {type(frame)}")
+        logging.info(f"Writing frame: {frame.shape}")
+        self.writer.write(np.uint8(frame))
         self.frame_count += 1
 
     def __del__(self):
         self.writer.release()
+
+
+class CircularBuffer(object):
+    def __init__(self, shape, maxlen=10):
+        """
+        A deque as a numpy array with elements of shape `shape`
+        """
+        self.array = np.zeros((maxlen, *shape))
+        self.start = 0
+        self.end = 0
+        self.maxlen = maxlen
+        self.full = False
+
+    def reorder_index(self, start, end, step):
+        start = self.start + start
+        end = self.start + end
+        indices = []
+        for i in range(start, end, step):
+            indices.append(i % self.maxlen)
+        return indices
+
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            start, end, step = key.indices(len(self.array))
+            if not self.full:
+                return self.array[start:end:step]
+            else:
+                return self.array[self.reorder_index(start - 1, end - 1, step)]
+        elif isinstance(key, int):
+            if not self.full:
+                return self.array[(key + self.start) % self.maxlen]
+            else:
+                return self.array[(key + self.start - 1) % self.maxlen]
+        else:
+            raise Exception('Invalid argument type: {}'.format(type(key)))
+
+    def append(self, x):
+        self.array[self.end] = x
+        self.end = (self.end + 1) % self.maxlen
+        if self.end == 0:
+            self.full = True
+        if self.full:
+            self.start = (self.end + 1) % self.maxlen

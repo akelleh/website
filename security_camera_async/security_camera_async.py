@@ -75,15 +75,18 @@ class Application(tornado.web.Application):
             (r'^/status', StatusHandler),
             (r'^/frame', FrameHandler),
         ]
-    
-        self.frame_buffer = FrameBuffer(callbacks=[start_or_stop_recording,],
+
+        camera = config.get('camera_address', -1)
+        self.camera = ThreadedVideoCamera(camera, initialize_thread=True)
+        thread_count = config.get('pool_threads', config.get('pool_executors', 2))
+        self.pool = ThreadPoolExecutor(thread_count)
+        frame_shape = self.camera.get_frame().shape
+        logging.info(f"Camera resolution is {frame_shape}.")
+        self.frame_buffer = FrameBuffer(frame_shape,
+                                        callbacks=[start_or_stop_recording,],
                                         window=config.get("frame_buffer", 5),
                                         verbose=True,
                                         max_buffer_frames=config.get("max_buffer_frames", None))
-        camera = config.get('camera_address', -1)
-        self.camera = ThreadedVideoCamera(camera, initialize_thread=True)
-        thread_count = config.get('pool_threads', 2)
-        self.pool = ThreadPoolExecutor(thread_count)
 
         super(Application, self).__init__(app_handlers, **app_settings)
 
@@ -94,9 +97,10 @@ class Application(tornado.web.Application):
             cv2.waitKey(1)
         self.frame_buffer.add_frame(image)
 
+
     async def check_and_execute_callbacks(self):
         if self.frame_buffer.should_execute_callbacks():
-            frame = self.frame_buffer.buffer[-1][1]
+            frame = self.frame_buffer.buffer[-1]
             await tornado.ioloop.IOLoop.current().run_in_executor(self.pool,
                                                                   self.frame_buffer.execute_callbacks,
                                                                   frame)
@@ -116,6 +120,6 @@ if __name__ == "__main__":
     ioloop = tornado.ioloop.IOLoop.instance()
 
     tornado.ioloop.PeriodicCallback(app.next_frame, 1000. / 60.).start()
-    tornado.ioloop.PeriodicCallback(app.check_and_execute_callbacks, 1000).start()
+    tornado.ioloop.PeriodicCallback(app.check_and_execute_callbacks, 500).start()
     
     ioloop.start()
