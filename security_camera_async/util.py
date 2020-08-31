@@ -198,19 +198,21 @@ class ThreadedVideoCamera(object):
 
 
 class FrameBuffer(object):
-    def __init__(self, window=120., callbacks=[]):
+    def __init__(self, window=10., callbacks=[], verbose=False):
         self.buffer = deque()
         self.window = window
         self.callbacks = callbacks
-        self.recording = []
+        self.recording = None
         self.last_recording_name = None
         self.time_of_last_motion = -np.inf
         self.power_on = True
         self.is_recording = False
         self.is_saving = False
+        self.verbose = verbose
 
     def start_recording(self):
-        self.record_buffer()
+        filename = f'{time.time()}.avi'
+        self.recording = Video(filename, self.buffer)
         self.is_recording = True
 
     def stop_recording(self):
@@ -235,6 +237,8 @@ class FrameBuffer(object):
 
     def add_frame(self, frame):
         self.buffer.append((time.time(), frame))
+        if self.verbose:
+            logging.info(f"Added frame to buffer. {len(self.buffer)} frames.")
         if self.is_recording:
             self.record(frame)
         while len(self.buffer) > 2 and self.buffer[-1][0] - self.buffer[0][0] > self.window:
@@ -243,27 +247,45 @@ class FrameBuffer(object):
     def get_buffer(self):
         return np.array([frame[1] for frame in self.buffer])
 
-    def record_buffer(self):
-        self.recording = [frame[1] for frame in self.buffer]
-
     def execute_callbacks(self, frame):
         for callback in self.callbacks:
             callback(self, frame)
 
     def record(self, frame):
-        self.recording.append(np.array(frame))
+        self.recording.write_frame(np.array(frame))
+        if self.verbose:
+            logging.info(f"Added frame to recording. {self.recording.frame_count} frames.")
 
     def clear_recording(self):
-        self.recording = []
+        self.recording = None
 
     def save_recording(self):
-        print("saving recording")
-        filename = '{}.avi'.format(time.time())
-        write_video(filename, 
-                    self.recording, 
-                    frame_rate=len(self.buffer)/(self.buffer[-1][0] - self.buffer[0][0]))
-        self.last_recording_name = filename
-        save_to_s3(filename)
+        print("saving recording.")
+        if self.recording:
+            self.last_recording_name = self.recording.filename
+            save_to_s3(self.recording.filename)
 
     def saw_motion(self):
         self.time_of_last_motion = time.time()
+
+
+class Video(object):
+    def __init__(self, filename, buffer, codec='DIVX'):
+        height, width, layers = buffer[-1][1].shape
+        frame_rate = len(buffer)/(buffer[-1][0] - buffer[0][0])
+        self.writer = cv2.VideoWriter(filename,
+                                      cv2.VideoWriter_fourcc(*codec),
+                                      frame_rate,
+                                      (width, height))
+        to_write = buffer.copy()
+        for time, frame in to_write:
+            self.writer.write(frame)
+        self.filename = filename
+        self.frame_count = 0
+
+    def write_frame(self, frame):
+        self.writer.write(frame)
+        self.frame_count += 1
+
+    def __del__(self):
+        self.writer.release()
