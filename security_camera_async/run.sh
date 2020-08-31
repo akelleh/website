@@ -7,7 +7,6 @@ docker run \
 -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
 --network="host" \
 --restart unless-stopped \
---name security_camera \
---device /dev/video0:/dev/video0 \
+--name security_camera \ 
 -p 8000:8000 \
 -it security_camera
