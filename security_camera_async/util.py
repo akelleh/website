@@ -198,8 +198,12 @@ class ThreadedVideoCamera(object):
 
 
 class FrameBuffer(object):
-    def __init__(self, window=10., callbacks=[], verbose=False):
-        self.buffer = deque()
+    def __init__(self, window=10., callbacks=[], verbose=False, max_buffer_frames=None):
+        if max_buffer_frames:
+            self.buffer = deque(maxlen=max_buffer_frames)
+        else:
+            self.buffer = deque()
+        self.max_buffer_frames = max_buffer_frames
         self.window = window
         self.callbacks = callbacks
         self.recording = None
@@ -233,7 +237,10 @@ class FrameBuffer(object):
         self.power_on = power_on
         if not power_on:
             self.clear_recording()
-            self.buffer = deque()
+            if self.max_buffer_frames:
+                self.buffer = deque(maxlen=self.max_buffer_frames)
+            else:
+                self.buffer = deque()
 
     def add_frame(self, frame):
         self.buffer.append((time.time(), frame))

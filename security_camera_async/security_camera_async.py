@@ -78,7 +78,8 @@ class Application(tornado.web.Application):
     
         self.frame_buffer = FrameBuffer(callbacks=[start_or_stop_recording,],
                                         window=config.get("frame_buffer", 5),
-                                        verbose=True)
+                                        verbose=True,
+                                        max_buffer_frames=config.get("max_buffer_frames", None))
         camera = config.get('camera_address', -1)
         self.camera = ThreadedVideoCamera(camera, initialize_thread=True)
         thread_count = config.get('pool_threads', 2)
