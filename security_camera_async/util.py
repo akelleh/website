@@ -268,6 +268,7 @@ class FrameBuffer(object):
         if self.recording:
             self.last_recording_name = self.recording.filename
             save_to_s3(self.recording.filename)
+            os.remove(self.recording.filename)
 
     def saw_motion(self):
         self.time_of_last_motion = time.time()
