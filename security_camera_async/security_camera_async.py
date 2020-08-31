@@ -75,15 +75,18 @@ class Application(tornado.web.Application):
             (r'^/status', StatusHandler),
             (r'^/frame', FrameHandler),
         ]
-    
-        self.frame_buffer = FrameBuffer(callbacks=[start_or_stop_recording,],
-                                        window=config.get("frame_buffer", 5),
-                                        verbose=True,
-                                        max_buffer_frames=config.get("max_buffer_frames", None))
+
         camera = config.get('camera_address', -1)
         self.camera = ThreadedVideoCamera(camera, initialize_thread=True)
         thread_count = config.get('pool_threads', 2)
         self.pool = ThreadPoolExecutor(thread_count)
+        frame_shape = self.camera.get_frame().shape
+        logging.info(f"Camera resolution is {frame_shape}.")
+        self.frame_buffer = FrameBuffer(frame_shape,
+                                        callbacks=[start_or_stop_recording,],
+                                        window=config.get("frame_buffer", 5),
+                                        verbose=True,
+                                        max_buffer_frames=config.get("max_buffer_frames", None))
 
         super(Application, self).__init__(app_handlers, **app_settings)
 
