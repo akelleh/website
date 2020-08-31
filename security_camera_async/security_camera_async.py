@@ -78,7 +78,7 @@ class Application(tornado.web.Application):
 
         camera = config.get('camera_address', -1)
         self.camera = ThreadedVideoCamera(camera, initialize_thread=True)
-        thread_count = config.get('pool_threads', 2)
+        thread_count = config.get('pool_threads', 3)
         self.pool = ThreadPoolExecutor(thread_count)
         frame_shape = self.camera.get_frame().shape
         logging.info(f"Camera resolution is {frame_shape}.")
@@ -99,7 +99,7 @@ class Application(tornado.web.Application):
 
     async def check_and_execute_callbacks(self):
         if self.frame_buffer.should_execute_callbacks():
-            frame = self.frame_buffer.buffer[-1][1]
+            frame = self.frame_buffer.buffer.array[-1]
             await tornado.ioloop.IOLoop.current().run_in_executor(self.pool,
                                                                   self.frame_buffer.execute_callbacks,
                                                                   frame)

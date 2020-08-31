@@ -214,7 +214,9 @@ class FrameBuffer(object):
 
     def start_recording(self):
         filename = f'{time.time()}.avi'
-        self.recording = Video(filename, self.buffer, self.buffer_times)
+        self.recording = Video(filename,
+                               self.buffer,
+                               self.buffer_times)
         self.is_recording = True
 
     def stop_recording(self):
@@ -240,22 +242,21 @@ class FrameBuffer(object):
             self.buffer_times = deque(maxlen=self.max_buffer_frames)
 
     def add_frame(self, frame):
+        logging.info("Recording frame.")
         self.buffer_times.append(time.time())
-        self.buffer.append(frame)
+        self.buffer.append(np.array(frame, dtype=np.uint8))
         if self.verbose:
             logging.info(f"Added frame to buffer. {len(self.buffer_times)} frames.")
         if self.is_recording:
             self.record(frame)
 
-    def get_buffer(self):
-        return np.array([frame[1] for frame in self.buffer])
-
     def execute_callbacks(self, frame):
+        logging.info("Executing callbacks.")
         for callback in self.callbacks:
             callback(self, frame)
 
     def record(self, frame):
-        self.recording.write_frame(np.array(frame))
+        self.recording.write_frame(np.array(frame, dtype=np.uint8))
         if self.verbose:
             logging.info(f"Added frame to recording. {self.recording.frame_count} frames.")
 
@@ -275,6 +276,7 @@ class FrameBuffer(object):
 class Video(object):
     def __init__(self, filename, buffer, buffer_times, codec='DIVX'):
         height, width, layers = buffer.array.shape[1:]
+        logging.info(f"Video writing as {width}, {height}, {layers}")
         frame_rate = len(buffer_times)/(buffer_times[-1] - buffer_times[0])
         self.writer = cv2.VideoWriter(filename,
                                       cv2.VideoWriter_fourcc(*codec),
@@ -283,12 +285,13 @@ class Video(object):
         self.frame_count = 0
         for i in range(len(buffer.array)):
             frame = buffer[i]
-            self.writer.write(frame)
-            self.frame_count += 1
+            self.write_frame(frame)
         self.filename = filename
 
     def write_frame(self, frame):
-        self.writer.write(frame)
+        logging.info(f"Writing frame: {type(frame)}")
+        logging.info(f"Writing frame: {frame.shape}")
+        self.writer.write(np.uint8(frame))
         self.frame_count += 1
 
     def __del__(self):
