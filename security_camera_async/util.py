@@ -27,10 +27,14 @@ conf = {
 kafka = confluent_kafka.Producer(**conf)
 
 
+def get_and_add_frame(camera, frame_buffer):
+    frame = camera.get_frame()
+    frame_buffer.add_frame(frame)
+    return frame
+
 def array_to_image(X, filename='temp_image.png'):
     image = Image.fromarray(X, 'RGB')
     image.save(filename)
-
 
 def pub_record_event(frame_buffer, frame):
     message = {"time": datetime.datetime.now().strftime('%Y-%m-%d'),
@@ -124,11 +128,10 @@ class ThreadedVideoCamera(object):
         self.video.release()
 
     def get_frame(self, should_resize=False):
-        #self.success, self.image = self.video.read()
         self.success = False
         while not self.success:
             self.success, self.image = self.video.read()
-        if self.success and should_resize:
+        if should_resize:
             self.image = self.resize(self.image)
         return self.image
 
@@ -153,11 +156,7 @@ class ThreadedVideoCamera(object):
         old_size = image.size  # old_size[0] is in (width, height) format
         ratio = float(max(shape)) / max(old_size)
         new_size = tuple([int(x * ratio) for x in old_size])
-        # use thumbnail() or resize() method to resize the input image
-        # thumbnail is a in-place operation
-        # im.thumbnail(new_size, Image.ANTIALIAS)
         im = image.resize(new_size, Image.ANTIALIAS)
-        # create a new image and paste the resized on it
         new_im = Image.new("RGB", shape)
         new_im.paste(im, ((shape[0] - new_size[0]) // 2,
                           (shape[1] - new_size[1]) // 2))
@@ -242,21 +241,19 @@ class FrameBuffer(object):
             self.buffer_times = deque(maxlen=self.max_buffer_frames)
 
     def add_frame(self, frame):
-        logging.info("Recording frame.")
         self.buffer_times.append(time.time())
-        self.buffer.append(np.array(frame, dtype=np.uint8))
+        self.buffer.append(np.uint8(np.array(frame, dtype=np.uint8)))
         if self.verbose:
             logging.info(f"Added frame to buffer. {len(self.buffer_times)} frames.")
         if self.is_recording:
             self.record(frame)
 
     def execute_callbacks(self, frame):
-        logging.info("Executing callbacks.")
         for callback in self.callbacks:
             callback(self, frame)
 
     def record(self, frame):
-        self.recording.write_frame(np.array(frame, dtype=np.uint8))
+        self.recording.write_frame(np.uint8(np.array(frame, dtype=np.uint8)))
         if self.verbose:
             logging.info(f"Added frame to recording. {self.recording.frame_count} frames.")
 
