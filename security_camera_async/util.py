@@ -123,6 +123,7 @@ class ThreadedVideoCamera(object):
     def __init__(self, camera=0, initialize_thread=False):
         self.video = cv2.VideoCapture(camera)
         self.success, self.image = self.video.read()
+        self.last_frame_time = -1
 
     def __del__(self):
         self.video.release()
@@ -130,9 +131,17 @@ class ThreadedVideoCamera(object):
     def get_frame(self, should_resize=False):
         self.success = False
         while not self.success:
-            self.success, self.image = self.video.read()
-        if should_resize:
-            self.image = self.resize(self.image)
+            frame_grabbed = self.video.grab()
+            if frame_grabbed:
+                time_s = self.video.get(cv2.CAP_PROP_POS_MSEC) / 1000
+                if time_s > self.last_frame_time:
+                    self.success = True
+                    self.last_frame_time = time_s
+                    self.image = self.video.retrieve()
+                if should_resize:
+                    self.image = self.resize(self.image)
+            else:
+                break
         return self.image
 
     def get_image(self):
