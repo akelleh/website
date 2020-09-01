@@ -137,7 +137,7 @@ class ThreadedVideoCamera(object):
                 if time_s > self.last_frame_time:
                     self.success = True
                     self.last_frame_time = time_s
-                    self.image = self.video.retrieve()
+                    _, self.image = self.video.retrieve()
                 if should_resize:
                     self.image = self.resize(self.image)
             else:
