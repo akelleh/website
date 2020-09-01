@@ -5,7 +5,7 @@ from util import (ThreadedVideoCamera,
                   FrameBuffer,
                   start_or_stop_recording,
                   pub_record_event,
-                  array_to_image)
+                  get_and_add_frame)
 import yaml
 import tornado.ioloop
 import tornado.web
@@ -77,7 +77,7 @@ class Application(tornado.web.Application):
         ]
 
         camera = config.get('camera_address', -1)
-        self.camera = ThreadedVideoCamera(camera, initialize_thread=True)
+        self.camera = ThreadedVideoCamera(camera, initialize_thread=True)#.thread_stream()
         thread_count = config.get('pool_threads', config.get('pool_executors', 2))
         self.pool = ThreadPoolExecutor(thread_count)
         frame_shape = self.camera.get_frame().shape
@@ -91,6 +91,7 @@ class Application(tornado.web.Application):
         super(Application, self).__init__(app_handlers, **app_settings)
 
     def next_frame(self):
+        logging.info("Grabbing Frame.")
         image = self.camera.get_frame()
         if config.get('show_video', False):
             cv2.imshow('VIDEO', image)
@@ -98,12 +99,19 @@ class Application(tornado.web.Application):
         self.frame_buffer.add_frame(image)
 
 
-    async def check_and_execute_callbacks(self):
+    async def next_frame_async(self):
+        await tornado.ioloop.IOLoop.current().run_in_executor(self.pool,
+                                                              self.next_frame)
+
+    def check_and_execute_callbacks(self):
+        logging.info("Running callbacks.")
         if self.frame_buffer.should_execute_callbacks():
             frame = self.frame_buffer.buffer[-1]
-            await tornado.ioloop.IOLoop.current().run_in_executor(self.pool,
-                                                                  self.frame_buffer.execute_callbacks,
-                                                                  frame)
+            self.frame_buffer.execute_callbacks(frame)
+
+    async def check_and_execute_callbacks_async(self):
+        await tornado.ioloop.IOLoop.current().run_in_executor(self.pool,
+                                                              self.check_and_execute_callbacks)
 
 
 if __name__ == "__main__":
@@ -119,7 +127,7 @@ if __name__ == "__main__":
     http_server.listen(port)
     ioloop = tornado.ioloop.IOLoop.instance()
 
-    tornado.ioloop.PeriodicCallback(app.next_frame, 1000. / 60.).start()
-    tornado.ioloop.PeriodicCallback(app.check_and_execute_callbacks, 500).start()
+    tornado.ioloop.PeriodicCallback(app.next_frame_async, 1000. / 30.).start()
+    tornado.ioloop.PeriodicCallback(app.check_and_execute_callbacks_async, 1000).start()
     
     ioloop.start()
