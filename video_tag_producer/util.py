@@ -7,6 +7,8 @@ import torchvision.models as models
 import numpy as np
 import cv2 as cv
 import confluent_kafka
+import json
+import datetime
 
 
 with open(os.path.join(os.path.dirname(__file__), 'config.yml')) as config_file:
@@ -66,20 +68,22 @@ def poll_cameras():
     detections = []
     for location, result in zip(locations, results):
         detections += [{"detection_type": class_names[class_id],
-                        "probability": probability} for class_id, probability in zip(result['labels'],
+                        "probability": float(probability)} for class_id, probability in zip(result['labels'],
                                                                                      result['scores'])]
     if (result['scores'] > config['detection_probability_threshold']).any():
         logging.info(detections)
-
+        message = {'timestamp': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                   'detections': detections}
+        pub(json.dumps(message))
 
 
 
 def pub(message):
-
     conf = {
         'bootstrap.servers': f"{config['kafka_server']['ip']}:{config['kafka_server']['port']}",
     }
     kafka = confluent_kafka.Producer(**conf)
-    kafka.produce(config['kafka_topic'], value=message)
-    kafka.flush(timeout=1./120.)
+    kafka.produce(config['kafka_topic'],
+                  value=message)
+    kafka.flush(timeout=1.)
     logging.info("message published.")
