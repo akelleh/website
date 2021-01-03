@@ -1,14 +1,12 @@
 import os
 import yaml
-from tornado.httpclient import AsyncHTTPClient
 import tornado.gen
 import logging
-from PIL import Image
-import io
 import torch
 import torchvision.models as models
 import numpy as np
 import cv2 as cv
+import confluent_kafka
 
 
 with open(os.path.join(os.path.dirname(__file__), 'config.yml')) as config_file:
@@ -70,5 +68,18 @@ def poll_cameras():
         detections += [{"detection_type": class_names[class_id],
                         "probability": probability} for class_id, probability in zip(result['labels'],
                                                                                      result['scores'])]
-    if (result['scores'] > 0.6).any():
+    if (result['scores'] > config['detection_probability_threshold']).any():
         logging.info(detections)
+
+
+
+
+def pub(message):
+
+    conf = {
+        'bootstrap.servers': f"{config['kafka_server']['ip']}:{config['kafka_server']['port']}",
+    }
+    kafka = confluent_kafka.Producer(**conf)
+    kafka.produce(config['kafka_topic'], value=message)
+    kafka.flush(timeout=1./120.)
+    logging.info("message published.")

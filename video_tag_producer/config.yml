@@ -2,6 +2,11 @@ cameras:
   camera_1:
     camera_ip: 192.168.1.16
     camera_name: 'back_yard'
+kafka_server:
+  ip: 192.168.1.12
+  port: 9092
+kafka_topic: 'Video'
+detection_probability_threshold: 0.6
  # camera_2:
  #   camera_ip: 192.168.1.6
  #   camera_port: 8000
@@ -10,4 +15,3 @@ cameras:
  #   camera_ip: 192.168.1.9
  #   camera_port: 8000
  #   camera_name: 'Basement'
-
