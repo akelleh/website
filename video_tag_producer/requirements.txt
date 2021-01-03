@@ -1,0 +1,10 @@
+Pillow>=5.1.0
+opencv-python>=3.4.3.18
+boto3
+pyyaml
+tornado>=5.1.1
+scikit-image
+imgaug
+pycocotools
+torch
+torchvision

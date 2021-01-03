@@ -1,0 +1,13 @@
+Pillow>=5.1.0
+keras-applications>=1.0.5
+keras-preprocessing>=1.0.3
+opencv-python>=3.4.3.18
+boto3
+pyyaml
+tornado>=5.1.1
+scikit-image
+imgaug
+cython
+pycocotools
+tensorflow==1.5.0
+keras==2.1.5

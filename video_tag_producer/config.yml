@@ -1,0 +1,13 @@
+cameras:
+  camera_1:
+    camera_ip: 192.168.1.16
+    camera_name: 'back_yard'
+ # camera_2:
+ #   camera_ip: 192.168.1.6
+ #   camera_port: 8000
+ #   camera_name: 'Kitchen'
+ # camera_3:
+ #   camera_ip: 192.168.1.9
+ #   camera_port: 8000
+ #   camera_name: 'Basement'
+
