@@ -32,11 +32,13 @@ class_names = np.array([
 
 
 def load_model():
+    logging.info('Loading model.')
     model = models.detection.maskrcnn_resnet50_fpn(pretrained=True,
                                                    progress=True,
                                                    num_classes=91,
                                                    pretrained_backbone=True,
                                                    trainable_backbone_layers=3).eval()
+    logging.info('Loaded.')
     return model
 
 
@@ -57,6 +59,7 @@ model = load_model()
 
 @tornado.gen.coroutine
 def poll_cameras():
+    logging.info('Polling cameras.')
     images_to_tag = []
     locations = []
     for camera in config['cameras'].values():
@@ -64,12 +67,15 @@ def poll_cameras():
         images_to_tag.append(preprocess_image(image))
         locations.append(camera['camera_name'])
         logging.info('got image from {}, {}'.format(camera['camera_name'], np.asarray(image).shape))
+    logging.info('Tagging images.')
     results = model(images_to_tag)
     detections = []
     for location, result in zip(locations, results):
         detections += [{"detection_type": class_names[class_id],
                         "probability": float(probability)} for class_id, probability in zip(result['labels'],
-                                                                                     result['scores'])]
+                                                                                            result['scores'])]
+    logging.info("raw detections:")
+    logging.info(detections)
     if (result['scores'] > config['detection_probability_threshold']).any():
         logging.info(detections)
         message = {'timestamp': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -87,3 +93,5 @@ def pub(message):
                   value=message)
     kafka.flush(timeout=1.)
     logging.info("message published.")
+
+def send_sms(message, phone_number):
