@@ -8,3 +8,4 @@ imgaug
 pycocotools
 torch
 torchvision
+confluent_kafka
