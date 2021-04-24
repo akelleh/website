@@ -9,6 +9,7 @@ import cv2 as cv
 import confluent_kafka
 import json
 import datetime
+import boto3
 
 
 with open(os.path.join(os.path.dirname(__file__), 'config.yml')) as config_file:
@@ -82,6 +83,15 @@ def poll_cameras():
                    'detections': detections}
         pub(json.dumps(message))
 
+        if should_alert(detections):
+            logging.info("sending SMS.")
+            send_sms(message, '18437371257')
+
+def should_alert(detections):
+    for detection in detections:
+        if 'person' in detection and detection.get('person', 0.) > config['detection_probability_threshold']:
+            return True
+    return False
 
 
 def pub(message):
@@ -95,3 +105,9 @@ def pub(message):
     logging.info("message published.")
 
 def send_sms(message, phone_number):
+    sns = boto3.client('sns', region_name='us-east-1')
+    response = sns.publish(
+        PhoneNumber=phone_number,
+        Message=message,
+    )
+    logging.info(f"SMS response: {response}")
