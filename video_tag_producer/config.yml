@@ -6,7 +6,7 @@ kafka_server:
   ip: 192.168.1.12
   port: 9092
 kafka_topic: 'Video'
-detection_probability_threshold: 0.6
+detection_probability_threshold: 0.7
  # camera_2:
  #   camera_ip: 192.168.1.6
  #   camera_port: 8000

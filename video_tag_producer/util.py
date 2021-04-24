@@ -85,11 +85,12 @@ def poll_cameras():
 
         if should_alert(detections):
             logging.info("sending SMS.")
-            send_sms(message, '18437371257')
+            send_sms(str(message), '18437371257')
 
 def should_alert(detections):
+    return False
     for detection in detections:
-        if 'person' in detection and detection.get('person', 0.) > config['detection_probability_threshold']:
+        if detection['detection_type'] == 'person' and detection['probability'] >= config['detection_probability_threshold']:
             return True
     return False
 
