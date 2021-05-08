@@ -31,6 +31,11 @@ class_names = np.array([
                         'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush'
                         ])
 
+conf = {
+    'bootstrap.servers': f"{config['kafka_server']['ip']}:{config['kafka_server']['port']}",
+}
+kafka = confluent_kafka.Producer(**conf)
+
 
 def load_model():
     logging.info('Loading model.')
@@ -96,10 +101,6 @@ def should_alert(detections):
 
 
 def pub(message):
-    conf = {
-        'bootstrap.servers': f"{config['kafka_server']['ip']}:{config['kafka_server']['port']}",
-    }
-    kafka = confluent_kafka.Producer(**conf)
     kafka.produce(config['kafka_topic'],
                   value=message)
     kafka.flush(timeout=1.)
