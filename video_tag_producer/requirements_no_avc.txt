@@ -11,3 +11,6 @@ cython
 pycocotools
 tensorflow==2.4.0
 keras==2.1.5
+torch
+torchvision
+confluent_kafka
