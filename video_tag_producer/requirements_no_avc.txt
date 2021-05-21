@@ -9,7 +9,7 @@ scikit-image
 imgaug
 cython
 pycocotools
-tensorflow==2.4.0
+tensorflow==2.5.0
 keras==2.1.5
 torch
 torchvision
