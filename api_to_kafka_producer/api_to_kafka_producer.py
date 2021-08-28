@@ -1,13 +1,16 @@
 import tornado.ioloop
 import tornado.web
 import logging
+import util
 
 
 class MainHandler(tornado.web.RequestHandler):
     def post(self):
         self.set_header("Content-type", "application/json")
-        data = self.get_argument('body', 'No data received')
-        self.write(data)
+        data = self.request.body
+        if data:
+            logging.info(data)
+            util.pub(data)
 
     def get(self):
         self.write("OK")
