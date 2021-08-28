@@ -1,0 +1,4 @@
+kafka_server:
+  ip: 192.168.0.19
+  port: 9092
+kafka_topic: 'IoT-events'
