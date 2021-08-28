@@ -12,7 +12,7 @@ import datetime
 import boto3
 
 
-with open(os.path.join(os.path.dirname(__file__), 'config.py')) as config_file:
+with open(os.path.join(os.path.dirname(__file__), 'config.yml')) as config_file:
     config = yaml.load(config_file)
 
 

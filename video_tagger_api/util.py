@@ -20,7 +20,7 @@ sys.path.append(os.path.join(ROOT_DIR, "samples/coco/"))  # To find local versio
 import coco
 
 
-with open(os.path.join(os.path.dirname(__file__), 'config.py')) as config_file:
+with open(os.path.join(os.path.dirname(__file__), 'config.yml')) as config_file:
     config = yaml.load(config_file)
 
 
