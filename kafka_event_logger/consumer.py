@@ -7,8 +7,9 @@ import json
 
 event_logger = WebLogger(s3_bucket='aws-website-adamkelleher-q9wlb',
                          s3_path='video_tags',
-                         #log_file_path='/app/tmp'
-                         log_file_path='/home/akelleh/workspace/website/tmp/')
+                         log_file_path='/app/tmp'
+                         #log_file_path='/home/akelleh/workspace/website/tmp/'
+                         )
 
 def message_handler(message):
     message = json.loads(message.value())

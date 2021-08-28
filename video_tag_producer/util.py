@@ -43,7 +43,7 @@ def load_model():
                                                    progress=True,
                                                    num_classes=91,
                                                    pretrained_backbone=True,
-                                                   trainable_backbone_layers=3).eval()
+                                                   trainable_backbone_layers=0).eval()
     logging.info('Loaded.')
     return model
 
